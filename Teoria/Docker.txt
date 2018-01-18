@@ -1,0 +1,22 @@
+**********
+* Docker *
+**********
+
+	Virtualizacion de servicios
+
+	Requisitos:
+		kerner > 3.10.x
+
+	Comandos:
+		docker
+			info
+			images		#Listar las imagenes de contenedores
+			run			
+			exec
+			
+			Parametros
+			-p		#puertos
+			
+			Ejemplos
+			docker run -dtiP --name <nombre_¿contenedor?>	<image_ID>		#hacer correr un contenedor
+			docker exec -ti <nombre_¿contenedor?>		#entrar en el contenedor

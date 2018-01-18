@@ -1,0 +1,146 @@
+***********
+* LDAP(s) *
+***********
+
+	********************
+	El protocolo LDAP(S)
+	********************
+	LDAP: Lightweight Directory Access Protocol
+
+	Puertos: 
+		- 389 (ldap://) 
+		- 636 (ldaps://)
+		
+	Es un protocolo a nivel de aplicacion que permite acceso a un servicio de directorio ordenado y distribuido. 
+	
+	Es habitual (pero erroneo) referenciar con el nombre LDAP a la base de datos que contiene la información. Normalmente se usa pra almacenar información de autentificacion (usuario y contraseña), catos de contacto, etc...
+	
+	- La notación formal se basa en la posicion del objeto dentro del árbol, a esta dirección completa se la conoce como Distinguished Name (dn)
+	
+		dn -> Distinguished Name | cn=CommonName,ou=OrganizationalUnit,dc=Domain,dc=Containment
+		dc -> Domain Containment
+		ou -> Organizational Unit
+		cn -> Common Name
+		
+	- Estructuras LDIF: LDAP Data Interchange Format
+	
+		
+	
+	*************
+	Servidor LDAP
+	*************
+	
+		Uno de los servidores más comunes en el mundo Linux es OpenLDAP Server que viene integrado en el paquete "slapd"
+		
+			- Instalacion:  
+				apt-get install slapd (Debian)
+				yum install openldap-servers (Red Hat)
+			
+				
+		-Comandos:
+
+			slappasswd		#Generar contraseña encriptada para insertar en slapd.conf
+				-s
+				-h
+				
+				Ejemplo: slappasswd -s clase1
+			
+			slapadd		#Añadir entradas incluidas en fichero ldif a la base de datos ldap
+			
+				Ejemplo slapadd -l file.ldif
+				
+			slapcat		#Exportar la informacion del directorio LDAP a un fichero diff
+			
+				Ejemplo: slapcat -l fichero.ldif
+				
+			slapindex	#Regenerar indices de una base de datos LDAP o de atributo especifico
+				
+				Ejemplo:	slapindex -v
+							slapindex uid
+			
+	*************************
+	Cliente LDAP y Utilidades
+	*************************
+	
+		Los clientes de LDAP permiten realizar una serie de operaciones sobre las bases de datos de Directorios como búsquedas, inserciones, acltualizaciones, etc.
+		
+		El principal software en Linux para trabajar contra un directorio LDAP es el paquete de utilidades "ldap-utils"
+		
+		También existe un paquete de scripts llamado ldapscripts que nos proporciona herramientas para la gestion de grupos y usuarios POSIX en LDAP
+		
+		----------
+		LDAP-UTILS
+		----------
+		
+			- Instalación: apt-get install ldap-utils
+			
+		- Comandos:
+		
+			ldapsearch <options> <attr[=valor]>	#Realizar búsquedas en el directorio
+				-L[LL]							#Reducir la informacion facilitada por la consulta
+				-x								#Solicitar autenticacion simple
+				-D <user_dn>					#Distinguiseh Name del administrador (u otro usuario supongo)
+				-W|w<pass>						#Solicitar la contraseña interactivamente | -w<pass> pasa la contraseña implicitamente y sin encriptar
+				-h <ip>							#host - Dirección ip del servidor al que va dirigida la consulta
+				-b <contexto>					#Sección del directorio en la que realizar la búsqueda
+				<attr=[valor]>					#Nombre del atributo que será el criterio de búsqueda, puede buscarse un <valor> en concreto o usar el wildcard "*"
+				
+			
+				Ejemplos:
+					ldapsearch -Q -LLL -Y EXTERNAL -H ldapi:/// -b cn=config	#Consultar configuracion LDAP a través de mecanismos internos (como root)
+					ldapsearch -x -LLL -H ldap:/// -b dc=red,dc=local			#Consultar objetos en la raiz del directorio
+					
+			ldapadd	| ldapmodify 				# Realizar inseciones en el directorio desde un archivo LFIF
+												# La mayoría de parámetros son los mismos para los dos comandos	
+				-x								#Solicitar autenticacion simple
+				-D <user_dn>					#Distinguiseh Name del administrador (u otro usuario supongo)
+				-W|w<pass>						#Solicitar la contraseña interactivamente | -w<pass> pasa la contraseña implicitamente y sin encriptar
+				-h <ip>							#host - Dirección ip del servidor destino				
+				-f <file.ldif>
+				
+
+				Ejemplos:
+					ldapadd -x -D cn=admin,dc=red,dc=local -W -f file.ldif		#Importar objeros desde archivo ldif a traves de usuario admin
+					ldapmodify -x -D cn=admin,dc=red,dc=local -W -f file.ldif	#Actualizar objetos desde archivo ldif a traves de usuario admin
+					
+			ldapdelete			#Eliminar objetos existentes en el directorio, puede emplearse directamente sin unar archivo LDIF
+				
+				Ejemplos:
+					ldapdelete -x -D cn=admin,dc=red,dc=local -W -h localhost ou=group,dc=red,dc=local
+
+					
+			ldappasswd <opciones> dn_usuario	#Asignar contraseña encriptada a un onjeto usuario existente en el directorio
+				-x 
+				-D <dn_admin> 
+				-W 
+				-h <ip_servidor>
+				-S|s <contraseña>		#Preguntar la nueva contraseña interactivamente | pasarle la nueva contraseña desde el comando
+
+
+		-----------		
+		LDAPSCRIPTS
+		-----------		
+
+			Paquete con scripts para manejar las cuentas POSIX para los directorios LDAP
+			
+			- Instalar apt-get install ldapscripts
+			
+			- Ficheros
+				/etc/ldapscripts/ldapscripts.conf		#Archivo de configuración ldapscripts
+				/etc/ldapscripts/ldapscripts.passwd		#Archivo de contraseña para admin LDAP
+				/var/log/ldapscripts					#Fichero de log
+				
+			- Comandos para ldapscripts
+				
+				ldapaddgroup <nombre_grupo>				#Crear objetos de grupo en el directorio LDAP
+				ldapdeletegroup <nombre_grupo>			#Eliminar objetos de grupo en el directorio LDAP
+				
+				ldapadduser <nombre_usuario> <grupo>	#Crear usuario y añadirlo a un grupo
+				ldapmodifyuser <nombre_usuario> 		#Crear usuario y añadirlo a un grupo
+				ldapdeleteuser <nombre_usuario>			#Eliminar un usuario del directorio
+				
+	********
+	Archivos
+	********
+		/etc/ldap/ldap.conf			#Archivo de configuración maestro para las utilidades ldap
+		/etc/ldap/slapd.d/*			#Directorio para configuraciones del demonio OpenLDAP

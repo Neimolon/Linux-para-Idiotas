@@ -1,0 +1,69 @@
+*********************	
+* Loggs y Bitacoras *
+*********************
+
+*****
+Files
+*****
+
+/etc/syslog.conf		#Configuracion del demonio syslog (No existe en Debian 8 - Deprecated???)
+
+/etc/rsyslog.conf		#Configuracion del demonio rsyslog
+/etc/rsyslog.d/*		#Autocarga de configuraciones de syslog
+
+### EL FICHERO syslog.conf | rsyslog.conf ###
+
+	Una entrada de syslog.conf tiene las siguientes partes. (Se acepta * como wildcard)
+		
+		<facility>.<level>	<dest_path>
+
+	--Facility: Se usan para determinar que tipo de programa está logueando el mensaje.
+	
+		LOG_AUTH       					#security/authorization messages
+		LOG_AUTHPRIV   					#security/authorization messages (private)
+		LOG_CRON       					#clock daemon (cron and at)
+		LOG_DAEMON     					#system daemons without separate facility value
+		LOG_FTP        					#ftp daemon
+		LOG_KERN       					#kernel messages (these can't be generated from user processes)
+		LOG_LOCAL0 through LOG_LOCAL7 	#reserved for local use
+		LOG_LPR        					#line printer subsystem
+		LOG_MAIL       					#mail subsystem
+		LOG_NEWS       					#USENET news subsystem
+		LOG_SYSLOG     					#messages generated internally by syslogd(8)
+		LOG_USER (default) 				#generic user-level messages
+		LOG_UUCP       					#UUCP subsystem
+
+		
+	--Levels: Un nivel se utiliza para determinar la importancia de un mansaje (La siguiente listá esta ordenada en orden decreciente de importancia)	
+		LOG_EMERG      #system is unusable
+		LOG_ALERT      #action must be taken immediately
+		LOG_CRIT       #critical conditions
+		LOG_ERR        #error conditions
+		LOG_WARNING    #warning conditions
+		LOG_NOTICE     #normal, but significant, condition
+		LOG_INFO       #informational message
+		LOG_DEBUG      #debug-level message
+
+	--Destino: El dispositivo cuya entrada recibirá los mensajes de log. Puede ser la ruta de un archivo, una terminal, wildcard...
+	
+	
+	--Ejemplos:
+	# Registrar todos los mensajes del facility correspondiente al kernel sin importar el level
+	kern.* /var/log/kern.log
+	
+	# Emergencies sent to everybody that is logged in
+	*.emerg *
+	
+	#Debug messages go to "/var/log/debug"
+	*.debug /var/log/debug
+
+********
+Comandos
+********
+
+logger [opciones]		#Enviar un mensaje a logs a traves del sysloger
+	-p <prioridad>	#Error Warning || Mail Kernel --> mail.err
+	-t <mensaje>	#tell
+	-f	<path>		#file de log al que enviarlo, notese que por defecto se envia al log que tenga definido el tipo de error en us configuración
+
+logrotate #Divide archivos por tamaño y comprime

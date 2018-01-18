@@ -1,0 +1,339 @@
+											*************
+											* Seguridad * 
+											*************
+
+**********************
+Privilegios Especiales
+**********************
+
+Un usuario malintencionado, aprovechando la falta de atención o la ausencia de un compañero o un administrador que no está desconectado de su consola, puede modificar los permisos de
+ciertos comandos a su favor.
+
+El ejemplo más habitual es el de reescribir un shell como un programa poco usado (por ejemplo sx) y darle los privilegios SUID. Al iniciar este comando, se puede convertir en root.
+
+	Ejemplos:
+		-Como buscar todos los ficheros que disponen de permisos especiales
+			find / -type f \( -perm -4000 -o -perm -2000 \)
+	
+		-Como Asigar permisos especiales:
+			Añade/elimina permisos SUID a un binario de ejemplo (usuario):
+			# chmod u+s /home/user/ejecutable
+			# chmod u-s /bin/user/ejecutable
+
+			Añade/elimina permisos GUID a un binario de ejemplo (grupo):
+			# chmod g+s /home/user/ejecutable
+			# chmod g-s /home/user/ejecutable
+		
+		-Donde asignar permisos especiales:
+			Obtener el permiso de listar todos los ficheros:
+			# chmod u+s /bin/cat
+
+			Quitar el permiso de ejecutar el comando ping:
+			# chmod u-s /bin/ping
+
+
+			
+***********************************
+Contraseñas, Caducidad y Politicas
+***********************************
+
+Los usuarios deben elegir una buena contraseña, evitando la sencillez o más bien lo evidente: nombres de los hijos, de la esposa, de lugares, fecha de nacimiento y, en general, todo lo que importa y que es conocido del entorno profesional o personal.
+
+Es recomendable definir cambios de contraseñas periodicos. Se puede hacer con el comando "chage", o con el comando "passwd".
+
+chage <user>								#CHAnge AGE -  Pregunta interactivamente por una nueva configuracion de la caducidad de la contraseña 
+	-l | --list								#List - Lista el estado de la caducidad de la contraseña
+	-L | --lock <user>						#Bloquear un usuario
+	-U | --unlock <user>					#Desbloquear usuario
+
+
+
+--PAM
+	Los módulos PAM influyen en la política de gestión de las contraseñas, obligando en algunos casos a elegir una más o menos compleja.
+		
+		-Archivos:
+		
+			/etc/nologin		#Arcivo gestionado por PAM. Si existe permite loguearse solo a ROOT.
+								#Para que otros usuarios puedan loguearse hay que incluirlos en la configuracion del propio archivo
+
+		-Comandos
+			login/nologin		#Comandos que gestionan el archivo nologin
+
+	Estas cuentas que no deben tener permisos para conectarse a una shell, suelen ser cuentas de sistema como demonios FTP...
+							
+******************
+LIMITES DE USUARIO
+******************
+El comando ulimit permite actuar en el entorno del shell y de los procesos que controla permitiendo crear restricciones de uso de recursoso a los usuarios.
+
+
+	/etc/security/limits.conf	 #Archivo de configuración de limites para los usuarios
+
+	ulimit				#User Limit - Gestiona el uso de regursos de sistema por usuario
+		-a				#lista opciones controladas por ulimit
+		-n [<value>]	#Limite de archivos abiertos - sin <value> Muestra, con <value> Modifica
+	
+****
+SUDO
+****	
+
+SUDO: (SuperUser DO) Permite a usuarios actuar como Super User sin conocer la contraseña de SU
+	
+	/etc/sudoers		#fichero de configuracion de SUDO
+	/etc/sudoers.d/		#Directorio de autoload para configuraciones de SUDO
+
+		###Ejemplos de entradas en el archivo sudoers
+			#USER PRIVILEGE SPECIFICATION SECTION - Que "usuario" ejecuta "desde donde", "como quien" "los comandos" 
+
+					USUARIO		PERMISOS "RUN AS"
+					<usuario> 	<host>=(<usuario>,<grupo>) <comando> [,<comando>,<!comando>] 
+					root		ALL=(ALL_ALL) ALL
+					diego		ALL=(root) /usr/bin/useradd, !/usr/bin/passwd root
+					*con <!comando> se prohibe el uso de un comando, en el ejemplo se prohibe cambiar la passwd de root
+			
+			#ALIASES SECTION - Aliases que agrupan los diferentes elementos que componen la especificacion de permisos
+			
+				#Host Alias
+				USER_ALIAS	ADMINS=tec1,tec2 
+
+				#User Alias
+				USER_ALIAS	ADMINS=tec1,tec2
+
+				#Cmnd Alias
+				CMND_ALIAS  ADCOMS=/bin/bash,/sbin/ifconfig 
+				
+				#runas alias
+				RUNAS_ALIAS  ADCOMS=/bin/bash,/sbin/ifconfig 
+			
+		
+		---Comandos:
+	
+			sudo [<comando>] 	#ejecutar un comando como root
+				-k				#Limpiar credenciales, la proxima vez que se ejecuto sudo se pedira la contraseña
+			visudo				#comando para editar el archivo sudoers
+			gksudo				#Sudo para aplicaciones de Entorno Gráfico
+	
+*******
+NETSTAT
+*******
+
+Netstat es una herramienta que muestra las conexiones de red que se realizan en nuestra máquina, nos sirve para averiguar si está lo que se espera que esté conectado o si pudiese haber algo que no debería estar. Informacion del comando en la seccion Networking.
+
+Ejemplo: netstat -puta
+
+
+
+*****
+SNORT
+*****
+
+
+*****************
+* Superdemonios * 
+*****************
+
+	Demonios que gestionan la ejecucion de otros demonios.
+	
+*************
+TCP Wrappers
+*************
+	El demonio tcpd facilita el control de servicios de internet
+
+	The tcpd program can be set up to monitor incoming requests for telnet, finger, ftp, exec, rsh, rlogin, tftp, talk, comsat and other services that have a one-to-one mapping onto executable files.
+
+	Operation when started by INETD is as follows: whenever a request for service arrives, the inetd daemon is tricked into running the tcpd program instead of the desired server. tcpd logs the request and does some additional checks. When all is well, tcpd runs the appropriate server program and goes away.
+	
+	LOGGIN: Connections that are monitored by tcpd are reported through the syslog facility. Each record contains a time stamp, the client host name and the name of the requested service.
+
+	--Archivos:
+		/etc/hosts.allow	#Se priorizan sus reglas antes que las de hosts.deny	
+		/etc/hosts.deny	
+
+				###Ejemplo de archivos hosts.allow | hosts.deny
+				<demonio>: <cliente> [:comando_shell] 
+				vsftpd   : 192.168.1.
+				in.telnetd, portmap: puesto1, puesto2
+				ALL: .baddominio.org EXCEPT trusted.baddominio.org
+				vsftpd,in.telnetd,portmap: ALL
+				dovecot : 192.168.0. EXCEPT 192.168.1.5
+		
+				<demonio>  es una lista de uno o mas NOMBRES DE DEMONIO, NUMERO DE PUERTO DEL SERVIDOR o WILDCARDS
+				<cliente> es una losta de uno o mas HOSTNAMES, HOSTADDRESS, PATTERNS o WILDCARDS que deben coincidir con el cliente a filtrar.
+
+				-WILDCARDS-
+
+				ALL 		#The universal wildcard, always matches.
+				LOCAL 		#Matches any host whose name does not contain a dot character.
+				UNKNOWN		#Matches any user whose name is unknown, and matches any host whose name or address are unknown. 
+							#This pattern should be used with care: host names may be unavailable due to temporary name server problems. 
+							#A network address will be unavailable when the software cannot figure out what type of network it is talking to.
+				KNOWN 		#Matches any user whose name is known, and matches any host whose name and address are known.
+				PARANOID	#Matches any host whose name does not match its address. 
+							#When tcpd is built with -DPARANOID (default mode), it drops requests from such clients even before looking at the access control tables. Build without -DPARANOID when you want more control over such requests.
+
+
+**************
+INETD & XINETD
+**************
+		inetd
+		xinetd es una extensión más segura del servicio de Internet inetd. contiene mecanismos de control de acceso como Wrappers TCP, Listas de Control de Acceso, y la posibilidad de habilitar los Servicios_de_red basándose en el tiempo.
+		
+		
+		--Archivos:
+		
+		/etc/inetd.conf		#Configuracion del demonio inetd
+		/etc/xinetd.d/telnet
+			###Ejemplo /etc/xinetd.d/telnet
+
+			service telnet
+			{
+				disable = no
+				flags = REUSE 							#Atributos para la conexion
+				socket_type = stream 					#TCP / dgram = UDP
+				wait = no 								# = multi-threaded
+				user = root
+				server = /usr/sbin/in.telnetd
+				access_times = 7:00-12:30 13:30-21:00
+				bind = 192.168.1.39 					#Interfaz por donde se sirve el servicio
+				only_from = 192.168.1.0/24				 #Clientes que tienen permitido el acceso
+			}
+	
+***
+SSH
+***
+
+	--Archivos:
+		/etc/ssh/*					#Directorio de configuracion y almacen de claves SSH
+		/etc/ssh/ssh_config			#Configuracion del cliente SSH
+		/etc/ssh/sshd_config		#Configuracion del servidor SHH
+
+		###Campos interesantes del sshd_config:
+			Port				#Numero de puerto en el cual se levanta el servicio. Por defecto es el puerto "22"
+			PermitRootLogin 	#De forma predeterminada, esta opción se establece en	"yes“, lo que permite a OpenSSH para aceptar conexiones directas por parte 	de root.
+			X11Forwarding 		#Si se desea permitir que los usuarios remotos para ejecutar programas X a través de SSH, debe establecer esta opción a "yes“.
+			Protocol			#Valores aceptados(1 y 2). Potocol 1 se ha visto comprometida. La configuración más segura es configurar el Protocolo 2. 
+								#Esto limita la capacidad del servidor para comunicarse con los clientes más antiguos, sin embargo.
+
+		~/.ssh/*					#Directorio de claves ssh de usuario (ssh-keygen)
+		~/.ssh/know_hosts			#Fingerprint de las maquinas que se conectaron por ssh?
+		~/.ssh/id_rsa				#clave privada rsa (No se comparte)
+		~/.ssh/id_rsa.pub			#clave publica rsa (Se comparte)
+		~/.ssh/authorized_keys		#Archivo de claves autorizadas en la máquina remota a la que conectarse sin necesidad de usar passwords.
+									#Se debe copiar el contenido de "id_rsa.pub" del cliente
+									
+	--Comandos:
+		
+		$ssh <user>@<host>			
+			-p <port> | -o Port <port> 							#Cambiar el puerto de conexion
+			-L	<puerto_local>:<ip_remota>:<puerto_remoto>		#TUNELES SSH!
+		
+		ssh-keygen 		#generar las claves del usuario para ssh - Se generan las claves dentro del directorio $HOME/.ssh de nuestra máquina. 
+						#Debemos copiar la clave pública (contenido de id_rsa.pub) dentro del fichero $HOME/.ssh/authorized_keys de la maquina remota.
+			–t <type>	#Encriptacion de la clave: rsa,...
+
+		ssh-agent		#Agente de autentificacion para SSH
+		
+		
+		
+		sftp			#Conexion de SFTP (No es lo mismo que FTPS)
+		
+		scp	<src_path> <user@host>:<path> 	#Transferencai de ficheros con SSH Copy
+			-r			#Recursive
+			-p 			#Preserve -conserva el tiempo de modificación,acceso y modos archivo original.
+			-P 			#Especifica el puerto para realizar la conexión.
+		
+	
+
+	--Generar y compartir Claves publicas y privadas
+		1) En el servidor origen ejecutar la siguiente línea de comandos en la shell (no introducir passphrase) :
+			
+			ssh-keygen -t rsa
+
+		2) En el servidor de destino, creamos, en caso de que no exista, la carpeta ~/.ssh 
+		
+			destino# mkdir ~/.ssh
+
+		3) Finalmente, introducimos la llave pública del servidor origen en el fichero de llaves autorizadas del servidor destino:
+
+			cat .ssh/id_rsa.pub | ssh usuario@servidordestino 'cat >> .ssh/authorized_keys'
+
+			Nota: En este comando nos pedirá la clave al ejecutar un SSH, no obstante, será la última vez pues después ya estará la llave dentro de .ssh/authorized_keys
+
+		4) Ya podemos acceder vía ssh sin clave:
+			ssh usuario@servidordestino
+			scp archivo.txt usuario@servidordestino:/tmp
+	
+*********			
+-GPG /PGP
+*********
+
+	GPG (Gnu Privacy Guard) es un clon libre de PGP (Pretty Good Privacy). GPG y PGP son compatibles: las llaves generadas por el uno o el otro se pueden intercambiar.
+
+	Implementa el algoritmo de cifrado RSA. 
+
+	El objetivo de GPG es cifrar una comunicación gracias a un cifrado por claves asimétricas, Una clave permite firmar el texto, otra clave sirve para encriptar el texto.:
+		-Clave Pública: Difundida públicamente, permite al destinatario descifrar el mensaje que usted ha firmado (con la clave privada).
+		-Clave privada: Le permite firmar un mensaje. La persona que lo recibe comprueba su firma con la ayuda de la clave pública que usted le ha proporcionado, demonstrando así que usted es realmente el autor del mensaje.
+	
+	###Modo de Uso:
+	
+		--Generar claves de Firma: GPG empieza con crear, si no existen ya, el directorio raíz de GPG propio de cada usuario y los ficheros que contendrán los elementos gestionados por gpg
+
+			gpg --gen-key 				#Generar una clave - Lanza un menu interactivo que pregunta por datos al respecto de la clave.
+			gpg -k						#mostrar las claves del KeyRing
+			
+		--Revocar clave de firmas:	
+			
+			gpg --gen-revoke <alias>	#Revocar una clave.
+
+		–-Cifrar(Encriptar) y Firmar archivos:
+
+			gpg 
+				--encrypt <originalfile>	#Encriptar
+				--recipient <uid> 			#GPG UID - 
+				--armor 					#???
+				--out <encrypted-file> 		#Archivo de salida
+			
+			Ejemplo: gpg --out <encrypted-file> --recipient <uid> --armor --encrypt <original-file>
+
+		--Descifrar(Desencriptar) datos:	
+			
+			gpg -decrypt <file>		#desencriptar archivo
+		
+		--Firmar archivo:
+			Los archivos se pueden firmar y encriptar simultaneamente usando las dos opciones en el mismo comando
+			
+			gpg --sign <file>					#Firmar archivo con la firma codificada
+			gpg --clearsign <file>				#Firmar archivo con la firma sin codificar
+			gpg --detach-signature <file>		#Ni idea si pone o quita firma o que coño hace
+
+		--Verificar que el archivo se ha firmado
+			
+			gpg --verify <file>
+			
+		
+		--Exportar la clave pública:
+				
+			Ejemplo: gpg –output [archivo_destino] –export [ID_clave_pública]
+			
+		--Importar la clave pública:
+			Ejemplo: gpg –import <pubkey.gpg>
+		
+
+	--Resumen de Comandos:
+
+		gpg --list-key: lista las claves generadas por GPG
+		gpg --list-public-keys: lista las claves publicas 
+		gpg --edit-key: Menú interactivo para manejar las claves generadas por GPG
+		gpg --list-sigs: lista de la firmas con sus claves
+		gpg --export : exportamos la clave pública
+		gpg --import : importar la clave. Segundo parámetro para importar una clave existente en el servidor. Si no, la añadimos por consola
+		gpg --send-keys: exportar su clave pública hacia un servidor de claves GPG
+		gog --delete-secret-key <name>
+		gog --delete-key <name>
+
+		
+	--Archivos GPG:
+
+		/home/<username>/.gnupg/*			#Archivos de configuración y Key Rings de GPG para un usuario
+	

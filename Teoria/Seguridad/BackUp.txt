@@ -1,0 +1,100 @@
+************************************
+* respaldos de sistema de archivos *
+************************************
+
+	Por lo general los respaldos se hacen sin compresión, a fin de que sean rápidos y consuman la menor cantidad de recursos de sistema posibles, y sólo se utiliza compresión cuando se tiene un espacio muy limitado en el sistema de archivo, unidades de cinta u otras unidades de almacenamiento.
+
+	Hay tres tipos de respaldos:
+		
+		- Completos: Se consideran de nivel 0.
+
+		- Diferenciales: Se consideran de nivel 1. Consisten en respaldos que dependen de un respaldo completo parta poder restaurar todos los datos, sólo archivando los archivos nuevos o que cambiaron respecto del último respaldo completo. Es decir, para restaurar los datos se requiere el último respaldo completo y el respaldo diferencial. Hoy en día se utilizan muy poco, salvo que el administrador del sistema sea poco experimentado, o bien porque así es como lo prefiere, pues consumen mucho más espacio en el sistema de archivos que los respaldos incrementales.
+	
+		- Incrementales: Se consideran de nivel 1 cuando hay un solo respaldo completo antes de éste, de nivel 2 cuando hay un respaldo completo y un respaldo incremental antes de éste, de nivel 3 cuando hay un respaldo completo y dos incrementales antes de éste, y así sucesivamente. Son similares al respaldo diferencial, pero éstos pueden hacerse a partir de un respaldo completo y/o un diferencial y/o otros incrementales, restaurando los datos en secuencia, por lo cual permiten ahorrar el espacio disponible en el sistema de archivos. Es decir, para restaurar los datos, se requiere el último respaldo completo y uno o más respaldos incrementales.
+		
+*******		
+* TAR *
+*******		
+
+
+*********
+* RSYNC *
+*********
+
+
+
+	rsync	#sincronizar archivos en local o remoto creando una lista de incrementales - muy util para backups ??  -- DIRVISH es un buen programa de
+		-r	#para que recorra toda la estructura de directorios
+		-l  #para que mantenga enlaces simbolicos
+		-p	#para que mantenga permisos en archivos y subdirectorios
+		-t	#para que mantenga la hora y fecha
+		-g	#para que mantenga grupo
+		-o	#para que mantenga dueño (owner)
+		-D	#para que manenga archivos de dispositivo (root) 		en resumen el modo -a es el modo Archive.
+		-e <ssh>	#tunnel ssh
+		-v[v]	#Verbose
+		--exclude=<dir> 	#excluye directorio o archivo a copiar
+		
+		-- Modo de Uso: --
+			- Lanzar orden de sincronizacion desde mi equipo al equipo remoto 192.168.1.152
+			
+				rsync -e ssh -avvz /var/www/http/ 192.168.1.152:/var/www/http/
+				rsync -e ssh -avvz /var/lib/mysql/ 192.168.1.152:/var/lib/mysql
+		
+	rdiff				#que genera archivos delta con la diferencia entre dos archivos, que puede ser aplicada a uno para convertirlo en el otro en cualquier momento.
+	
+	rdiff-backup		#que utiliza rdiff para mantener espejos de backup de un directorio a través de una red. Rdiff-backup almacena delta rdiff incrementales, lo que permite recrear el directorio en cualquier punto de backup.
+	
+			- Para configurar un servidor de Linux :
+			
+				1º - Con rsync lo primero que tenemos que comprobar es que esta corriendo el servicio, normalmente en el puerto 873/tcp, el demonio esta en:
+
+					/etc/xinetd.d/rsync:
+						# default: off
+						# description: The rsync server is a good addition to an ftp server, as it \
+						# allows crc checksumming etc.
+						service rsync
+						{
+						disable = no
+						socket_type = stream
+						wait = no
+						user = root
+						server = /usr/bin/rsync
+						server_args = --daemon
+						log_on_failure += USERID
+						}
+				2º - service xinetd restart #Reiniciamos el superdemonio xinetd
+				
+				3º - A continuación tenemos que crear el fichero de configuración 
+						/etc/rsyncd.conf : 
+							rsyncd.conf
+							max connections = 5
+							use chroot = yes
+							list = yes
+							log format = %h %o %f %1 %b
+							log file = /var/log/rsync.log
+							hosts allow = 192.168.0.152 192.168.0.85
+							hosts deny = *
+							[www]
+							comment = servidor rsyn principal
+							path = /var/www/html/
+							uid = root
+							gid = root
+							[bd]
+							comment = servidor rsyn principal
+							path = /var/lib/mysql/
+							uid = mysql
+							gid = mysql
+
+					### Desglosaremos brevemente los parámetros mas importantes:
+						1º - secrest file: es un archivó que contiene los nombres de usuario y contraseñas correspondientes.
+						2º - Motd file: un saludo o identificador del servidor.
+						3º - Log format y log file son complementarios. El primero define la estructura y el segundo el destino donde se alojan lo mensajes cada vez que se inicie el servidor.
+						4º - Max connections: es el máximo de conexiones simultaneas en el servidor, en caso de llegar al limite, se avisa al usuario que lo intente después. El default es 0 sin limite.
+						5º - List: permite ver el contenido de la carpeta de respaldo cuando de solicita la lista.
+						6º - Uid: es el usuario que realiza el proceso. Por defecto es nobody.
+						7º - Gid:el grupo al que pertenece el usuario que realiza el proceso. Por defecto es nobody.
+						8º - Auth users es una lista de usuarios permitidos. Van separados por coma.
+						9º - Use chroot: enjaula el servicio.  
+
+			

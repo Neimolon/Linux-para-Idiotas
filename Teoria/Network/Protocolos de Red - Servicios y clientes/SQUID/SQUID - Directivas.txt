@@ -1,0 +1,128 @@
+ ****************************************
+ * Directivas de configuracion de SQUID *
+ ****************************************
+
+
+	************************************
+	Configuraciónes de Acceso y filtrado
+	************************************
+
+	http_port <[ip:]port> <[transparent]>	#Define el puerto de escucha, se pueden especificar multiples puertos.
+		[ip:]								#Determinar el interfaz de escucha, se puede vicular a una ip accesible solo desde red local para más seguridad 	
+		port								#3128 por defecto, 8080 normalmente en caso de proxy transparente
+		[transparent]						#Determina si es una escucha en modo transparente
+		
+		Ejemplo:	"http_port 192.168.1.150:3128"
+		
+		
+	acl <aclname> <acltype> <argument|file>		# Lista de Control de Acceso
+		aclname			# Nombre identificador de la lista de control
+		acltype			# Tipo de elemento que va a filtrar la lista
+							
+							#Source Header
+						src <ip/mask|ip-range/mask>		-	Ip/Rango de Ips de los clientes que se conectan con SQUID [rapido]
+						srcdomain <.foo.com>			-	Filtrado por dominio de cliente - Reverse lookup  [slow]
+						srcdom_regex [-i] <regex>		-	srcdomain filtrando regex
+						src_as <number>					- 	Los numeros AS se utilizan para direccionar a caches específicos
+						localip <ip/mask>				-	IP address the client connected to [fast]
+							
+							#Destiny Header
+						dst <ip/mask>					-	URL host's IP address [slow]
+						dstdomain <.foo.com>			-	Filtrado por url de destino [fast]
+						dstdom_regex [-n|-i] <regex>	- 	Como dstdomain fltrado con regex
+						dst_as <number>					- 	Los numeros AS se utilizan para direccionar a caches específicos
+							
+							#Tiempo
+						time [days] [h1:m1 - h2:m2]		-	Filtrado por fecha hora y minutos
+							days = M,T,W,H,F,A,S		=> Lunes,Martes,Miercoles...
+							
+							#URL
+						url_regex [-i] <regex>			-	Expresion regular coincidente con cualquier parte de la url
+						url_path [-i] <regex>			-	Councidente con la parte de ruta de la URL
+						urllogin [í] <regex>			-	Councidente con la parte de login de la url
+						
+							#PUERTO
+						port <port> [port] [range] ...	-	Filtrado de puerto
+						localport <3128>				-	Puerto de squid al que se conecta el cliente [modo intercepcion en el puerto 80]
+						proto <HTTP> [FTP] ...			-	Protocolo utilizado
+						
+							#OTRAS
+						method	<GET> <POST>			-	Metodo HTTP usado en la peticion
+						http_status <200> [400-404]...	-	Estado de la respuesta http
+						browser [-i] <regex>			-	Comprueba el User Agent
+						arp <xx:xx:xx:xx:xx:xx>			-	Filtrado por mac de cliente [fast]
+						proxy_auth [-i] <username>		-	Comprueba proxy Autentication headers
+						proxy_auth_regex <regex>		-	Comprueba proxy Autentication headers
+						referer_regex <regex>			-	Campo referer de la cabecera http
+						peername <myPeer>				-	Busca contra entradas de cache_peer
+						# Muchas más en :http://www.squid-cache.org/Doc/config/acl/
+						
+		argument|file	# argument: Dependiendo de "acltype" se le pasan los valores soble los que seran manejados
+						# file    : Los argumentos se pueden guardar y ser cargados desde archivos para una mejor organización (uno por linea)
+
+						
+	http_access <allow|deny> [!]<aclname> 		#Activa y define el comportamiendo de las listras de control de acceso
+		allow|deny								#Permite|deniega los valores de una ACL
+		[!]aclname								#Nombre de la lista de control de acceso sobre la que aplicarse, "!" busca contra la inversa del valor
+
+		
+	**********************
+	Configuración de Caché
+	**********************
+
+		
+	cache_mem <size> <unidades>		#Espacio de memoria reservado para guardar cache.		
+		size 						#16,32 ... numero de unidades disponibles
+		unidades					#KB, MB, GB ... magnitud de las unidades
+		
+		Ejemplo:	"cache_mem 128 MB"
+
+	cache_dir <tipofs> <rutadir> <config-especifica-fs> <[options]>		#Define un directorio para guardar cache en disco 
+		tipofs									#Tipo de almacenamiento de cache, cada uno tiene su configuracion especifica
+													ufs  : Formáto clasico de squid
+													aufs : ufs asincrono, se realiza con threads para evitar el bloqueo
+													diskd: ufs con diferentes procesos por llamada para evitar el bloqueo
+													rock : almacenamiento estilo base de datos en fichero.
+		rutadir									#/var/spool/squid - Ruta donde se guardaran los datos
+		config-especifica-fs					# cada tipo tiene una configuracion de opciones especifica: 
+													ufs:   cache_dir ufs   Directory-Name Mbytes L1 L2 [options] (normalmente usamos esta)
+													aufs:  cache_dir aufs  Directory-Name Mbytes L1 L2 [options]
+													diskd: cache_dir diskd Directory-Name Mbytes L1 L2 [options] [Q1=n] [Q2=n]
+													rock:  cache_dir rock  Directory-Name Mbytes [options]
+														L1	-> 16 - Numero máximo de directorio de primer nivel
+														L2 	-> 256 - Númer maximo de subdirectorios de seguno nivel
+														Mbytes -> 1024 (20% del total) Espacio disponible para guardar caché
+														### http://www.squid-cache.org/Doc/config/cache_dir/ para mas opciones
+		[options]								#Opciones comúnes 
+													no-store	:no de deben almacenar nuevos objetos
+													min-size=n	:tamaño minimo de los objetos que va a aceptar esta caché
+													max-size=n	:tamaño máximo de los objetos que va a aceptar esta cache
+													
+		Ejemplo: 	"cache_dir ufs /var/spool/squid 700 16 256"
+
+		
+	chache_mgr <email>		#Si hay algun problema co la caché se enviará un correo electrónico a la direccion especificada
+		email				# Direccion de correo del administrador de squid
+		
+		Ejemplo: 	"chache_mgr user@mail.dom"
+		
+													
+	cache_peer <server> <type> <http_port> <icp_port> <opciones>	#Especificar otros proxys de caché por delante o en paralelo a este servidor
+		server				#192.168.1.151	-	direccion ip del servidor
+		type				#parent|sibling	-	"parent" si el proxy esta por delante y "sibling" si está al mismo nivel
+		http_port			#8080			-	Puerto de escucha del peer para http
+		icp_port			#3130			-	Puerto de escucha ICP del peer
+		opciones			#proxy_only		- 	Y más mierda que habrá...
+		
+
+
+	maximum_object_size <n> <magnitud>		#Especifica el valor por defecto del parametro "max_size" en cualquier "cache_dir"
+		n									#Numero
+		magnitud							#MB|KB|...
+		Ejemplo:	"maximum_object_size 4 MB"
+			
+		
+**Creo que deprecateds
+	httpd_accel_host
+	httpd_accel_port
+	httpd_accel_with_proxy

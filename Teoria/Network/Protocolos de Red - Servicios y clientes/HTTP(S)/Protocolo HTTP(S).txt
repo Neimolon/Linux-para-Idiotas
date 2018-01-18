@@ -1,0 +1,17 @@
+**************
+* HTTP/HTTPS * 
+**************
+-- HiperText Transfer protocol --
+
+	Todo:
+		-Que es HTTP Definicion del protocolo
+		-Que es https Definicion del protocolo
+		-Errores HTTP
+		-Cabeceras
+ 
+	Puertos:	80 		para HTTP
+				443		para HTTPS
+	
+	Cliente: links, chrome, firefox,...
+	
+	Servidores: Apache, Nginx

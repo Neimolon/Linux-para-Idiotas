@@ -1,0 +1,255 @@
+*******
+* DNS *
+*******
+
+- Domain Name Service -
+	
+	Servidor de Nombres de Domino : 
+	
+		- Sistema que sirve para 'traducir' los nombres de hosts a identificadores de red y viceversa.
+		
+		- El servidor DNS utiliza una base de datos distribuida y jerárquica en forma de árbol. La raíz de la jerarquía es la zona llamada “.” y contiene todos los tdl (top level domain).
+		
+		- Por razones de tolerancia a fallos, los datos de cada zona deben replicarse al menos una vez (2 copias de los datos).
+
+		- Tipos de Servidores DNS:
+			Primario o Master:
+				• Tiene autoridad en la zona (SOA – Start Of Authority)
+				• Es el responsable de las actualizaciones.
+			Secundario o Slave:
+				• Albergan una replica de la zona.
+			Local o Caché:
+				• Se limita a reenviar las peticiones a otros servidores	
+	
+	
+		- Descripcion del protocolo :
+			
+			Cuando realizamos una consulta a un servidor DNS, se puede producir dos situaciones: 
+			
+				-- Consultas Iterativas (no recursivas): 
+					El cliente hace una consulta al Servidor DNS y éste le responde con la mejor respuesta que pueda darse basada sobre su caché o en las zonas locales. Si es imposible dar una respuesta, la consulta se reenvía hacia otro Servidor DNS repitiéndose este proceso hasta encontrar al Servidor DNS que tiene la Zona de Autoridad capaz de resolver la consulta.
+
+				-- Consultas Recursivas: 
+					El Servidor DNS asume toda la carga de proporcionar una respuesta completa para la consulta realizada por el Cliente DNS. El Servidor DNS desarrolla entonces Consultas Iterativas separadas hacia otros Servidores DNS (en lugar de hacerlo el Cliente DNS) para obtener la respuesta solicitada.
+				
+				
+			 Registros DNS:
+				A (Address) 				#Hace corresponder una dirección IPv4 a un nombre.
+				AAAA (Address) 				#Hace corresponder una dirección IPv6 a un nombre.
+				PTR (Pointer) 				#Hace corresponder un nombre a una dirección IP.
+				CNAME (Canonical Name) 		#Hace corresponder un nombre a un nombre (alias). - Usado por virtual host de Apache
+				MX (Mail Exchanger) 		#Hace que los agentes de transferencia de correos (MTAs) sepan cual es el servidor de entrega de correos.
+				SOA (Start Of Authority) 	#Indica que el servidor tiene la responsabilidad de la zona.
+				NS (Name Server) 			#Indica los servidores de nombre de la zona.
+			
+	-> Puerto: 53 TCP (Transferencia de ficheros de zona) UDP(resolucion de consultas)
+
+	********	
+	Cliente
+	********	
+		
+		->Comandos:
+			
+			host <dominio|ip>				#Utilidad para hacer Descubrimiento de DNS o DNS inversa
+				-t <ID_REGISTRO_DNS>	#pregunta por un registro DNS del dominio
+
+
+			dig <host>	#DNS LookUp Utility, Muestra los registros de DNS del host
+
+			nslookup <name|ip>		#Resuelve la ip de un nombre de equipo o el nombre desde la ip(resolución inversa)
+
+	**************
+	Servidor BIND9
+	**************
+			Otros servidores DNS:
+				•Dnsmasq
+				•Djbdns
+				•PowerDNS : Trabaja con MySQL por detras para no tener que andar reiniciando el servicio 
+							Para servidores con PLESK o en los que hay cambios constantemente en las zonas. 
+			
+		->Instalacion:
+			Debian: #apt-get install bind9
+			RedHat: #yum install bind
+			
+			Otros Paquetes recomendados : bind-utils , whois
+			
+		-> Comandos:
+			
+			dnssec-keygen 						#Generar clave de transacciones propia (publica y privada)
+				-a <algoritmo>					#HMAC-MD5 - identifies 157 (required for a TSIG signature and only algorithm supported by BIND)
+				-b <lenght>						#512 - multiple of 64 with a maximum length of 512 for the above algorithm 				 - 
+				-n [ZONE|HOST|ENTRY|USER] ns-<domain>_rndc-key	#Nombre
+					
+				#Ejemplo
+				dnssec-keygen -a HMAC-MD5 -b 512 -n USER ns-amime-server-net_rndc-key		#Crear una clave de usuaro
+				dnssec-keygen -r /dev/random -a HMAC-MD5 -b 128 -n HOST curso.esp			#Crear una clave de para un host
+				
+			rndc accion [parámetro]		#Remote Name Daemon Control   #Instrucciones de control sobre el DNS
+				reload					#Recarga los ficheros de configuración y la información de la zona.
+				reload zone [zona] 		#Recarga los ficheros de una sola zona.
+				reconfig 				#Carga los ficheros de configuración solo para las nuevas zonas.
+				flush 					#Borra la caché del servidor.
+				flush zone [zona] 		#Borra la caché del servidor para una zona especifica.
+				status 					#Muestra el estado del servidor
+		
+		-> Ficheros:
+		
+			--> CentOs 6 y 7- BIND9 <--
+				Si no está instalado chroot-bind:
+					/etc/named.conf		#El fichero de configuración 
+					/var/named			#daemon 
+				
+				Si está instalado chroot-bind:
+					/var/namded/chroot/var/named
+					/var/namded/chroot/etc/named.conf
+					/var/namded/chroot/etc/<fichero-de-zona>
+					
+			--> Debian 9 <--
+				/etc/bind/*							#Directorio de archivos configuracion de BIND
+				/etc/bind/rndc.key					#Clave de autenticacion de transacciones, no se puede actualizar las ¿zonas? sin esta key
+				/etc/bind/named.conf				#Archivo de configuracion principal de BIND - incluye las otras configuraciones
+				/etc/bind/named.conf.default-zones	#Contiene la configuracion de las zonas por defecto (forward reverse y broadcast)
+				/etc/bind/named.conf.options		#Opciones de configuracion del servidor DNS
+				/etc/bind/named.conf.local			#Configuracion del servidor DNS local - donde se declaran las zonas con el dominio de este servidor
+				/var/cache/bind/*					#Resource Records para la resolucion de nombres
+				
+			
+			
+			
+			
+					--- EJEMPLO DE CONFIGURACION DE named.conf ---
+							;;;options: Indica el directorio donde se encuentran otros archivos de configuración y algunas otras opciones.
+							acl red-local { 127.0.0.0/8; 192.168.0.0/24; };	#Crea el alias "red-local" que puede usar dentro de los allow-* 
+																			# representa todas las direcciones entre las llaves
+																			# ejemplo en allow-query
+								
+								#DNSSEC - declaramos la llave ( En named.conf de maestro y esclavo)
+								#
+								#En caso de tener una dnssec-key generada y activada en el servidor maestro
+								#
+								#key curso.esp {
+								#	algorithm HMAC-MD5;
+								#	secret "KuEeKa7Mxj9UUJtgoc7tSQ==";
+								#};
+								
+								#DNSSEC - Declaramos en named.conf del esclavo la key del servidor maestro 
+								#server 192.168.0.150 {
+								#	keys { curso.esp; };
+								#};
+							
+							options {					#Declaramos opciones del servidor
+								directory "/var/named";	#esta ruta es relativa al chroot (/var/named/chroot)
+								forwarders{				#Reenvia si no sabe resolver
+									80.58.0.33;			
+								};
+								allow-transfer{			#Direcciones de servidores esclavos
+									192.168.1.150;
+									192.168.1.152;
+									#key curso.esp		#DNSSEC - Permitimos la transferencia de zonas a servidores con la key declarada en curso.esp
+								};
+								allow-notify {			#Notificar en caso de que no haya resolucion??
+									192.168.1.152;
+								};	
+								allow-query{			#Permitir hacer querys al servido solo desde estas direcciones
+									red-local;
+								};
+								
+								allow-update{			#DDNS - Incluir nombres de equipo en las zonas a través de DHCP
+									192.168.1.150
+								};
+							};
+
+							#Declaramos ficheros de zona
+							zone "." {				# --- Configuracion de la zona Raiz ---
+							 type hint;
+							 file "named.ca";		#/var/named/chroot/var/named.ca - Configuracion de la zona de los 13 servidores raiz
+							};
+							zone "curso.esp"{		# --- Configuracion de la zona curso.esp ---
+							 type master;
+							 allow-update {			#Permitir actualizaciones del fichero curso.esp
+							   192.168.1.0/24;		#En este caso a cualquier equipo de la red - suele ser local
+							 };
+							 file "db.curso";		#/var/named/chroot/var/curso.esp - Configuracion de la zona "curso.esp" en el servidor local
+							};
+							zone "dominio1.esp"{
+							 type master;
+							 allow-update {
+							 192.168.1.0/24;
+							};
+							 file "db.dominio1";
+							 };
+							zone "dominio2.esp"{
+							 type master;
+							 allow-update {
+							 192.168.1.0/24;
+							};
+							 file "db.dominio2";
+							 };
+
+							zone "1.168.192.IN-ADDR.ARPA"{				#Zona de Resolucion inversa - Los registros "ptr" van en fichero aparte
+							 type master;
+							 allow-update {
+							  192.168.1.0/24;
+							};
+							 file "db.192.168.1";
+							};
+
+
+					--- EJEMPLO DE CONFIGURACION DE <fichero-de-zona> ---
+					
+							$ORIGIN .
+							;;-- Inicio cabezera fichero de zona --;
+							$TTL 259200     ; 3 days
+							;;;Resource Record de SOA "Start of Authority"
+							curso.esp               IN SOA  trasgu.curso.esp. root.curso.esp. (			
+															2008012003 ; serial
+															86400      ; refresh (1 day)
+															7200       ; retry (2 hours)
+															2592000    ; expire (4 weeks 2 days)
+															172800     ; minimum (2 days)
+															)
+							;;-- Fin cabezera fichero de zona --;
+							
+							;;;Registros DNS de la zona
+							NS      orion.curso.esp.
+							NS      trasgu.curso.esp.
+							MX      3 trasgu.curso.esp.
+							$ORIGIN curso.esp.
+							agendapc5               CNAME   pc5
+							curso                   A       192.168.1.3
+							fresnosa                CNAME   trasgu
+							localhost               A       127.0.0.1
+							pc2                     A       192.168.1.89
+							portalpc12              CNAME   pc12
+							portatil                A       192.168.1.2
+							trasgu                  A       192.168.1.150
+							orion                   A       192.168.1.152
+							webalizerpc12           CNAME   pc12
+							
+						-- Campos de la Cabecera de los Ficheros de Zona --
+							
+			ttl				#(Time To Live) Indica la duración en segundos que se conservarán los datos en memoria caché.
+			nombrezona		#FQDN de la zona administrada. Debe terminar con un punto.
+			IN				#Clase Internet
+			SOA				#Start Of Authority. Registro obligatorio para indicar que este servidor es legítimo en esta zona.
+			servidor		#FQDN del servidor que tiene autoridad en la zona.
+			mailadmin		#Dirección de correo del administrador del servidor. 
+							#La arroba es un carácter reservado en los archivos de zona, convencionalmente se reemplaza por un punto
+			serial			#Número de serie del archivo. 
+							#Útil cuando la zona se replica en otros servidores para saber si los datos han cambiado y si debe hacerse la réplica.
+			refresh			#Utilizado cuando la zona se replica. Indica al servidor esclavo con qué intervalo comprobar la validez de su zona.
+			retry			#Utilizado cuando la zona se replica. 
+							#Si es imposible para el servidor esclavo contactar con el servidor maestro, indica cuánto esperar antes de volverlo a intentarlo.
+			expire			#Utilizado cuando la zona se replica. Si es imposible para el servidor esclavo contactar con el servidor maestro.
+							#indica con cuánto tiempo los registros sin refrescar pierden su validez y deben dejarse de usar.
+			negative		#Indica cuánto tiempo el servidor debe conservar en caché una respuesta negativa.
+							
+		
+		->Tricks:
+			Configuracion para un servidor DNS especializado en velocidad y seguridad:
+			Deshabilitar inetd, ejecutar named independientemente, abrir solo puertos 25 y 53
+			
+			Si los servidores dns difieren más de 5 minutos entre sus relojes dará un error de sincronización
+			
+			
+	-> Zonas de autoridad:

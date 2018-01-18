@@ -1,0 +1,6 @@
+********
+* SARG * 
+********
+
+Herramienta para minar los logs que genera SQUID.
+

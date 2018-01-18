@@ -1,0 +1,104 @@
+*******************
+* X Window Server *
+*******************
+
+Entorno Gráfico (Diapositiva 6 - 106.1)
+
+****************************
+Componentes y Funcionamiento
+****************************
+
+	Las X son un servidor gráfico para sistemas operativos basados en núcleos Linux/Hurd, es la base de la pila de software necesaria para componer un entorno gráfico.
+
+	Esta pila de entorno gráfico se estandariza en los siguientes componentes:
+	­> X Window Server
+	­> Gestor de Ventanas
+	­> Gestor de Pantallas
+	­> Entorno de escritorio
+
+		->1 ­ Sistema de ventanas X Window System:
+
+			X Window System es un paquete de software encargado de gestionar las entradas y salidas de algunos componentes hardware necesarios para una interacción gráfica con el usuario (ya sea directamente a través de los drivers gráficos o a través del kernel), así como de comunicarse con un sistema de ventanas para extender lafuncionalidad gráfica básica que ofrece, permitiendo así ejecutar ordenes de dibujo independientemente del hardware que se esté ejecutando.
+
+			Utiliza una estructura cliente­servidor en la que los clientes se conectan  a través del puerto TCP/UDP 6000 a través del protocolo Xprotocol.
+
+			Entrada: Se encarga de capturar las diferentes interrupciones generadas por el usuario a través de diferentes periféricos como teclado,ratón,pads así como otras ordenes enviadas por el kernel.
+
+			Salida: Se encarga de decirle al driver gráfico que es lo que tiene que pintar en la pantalla (iconos, fondos, ventanas de aplicaciones...).
+
+			
+		->2 - El Gestor de Ventanas. (Window Manager)
+
+			El gestor de ventanas es una capa de software especializada en extender la funcionalidad de las ventanas del entorno gráfico ofrecido por X Window Server, añadiendo diferentes funcionalidades como la redimension, cierre, movimiento,ocultación, coloreado, control del foco.
+
+		Existen diferentes sistemas de escritorio diferentes que se pueden ensamblar con el servidor X como  kwin(KDE),metacity(GNOME2),mutter(GNOME3),xfwm(XFCE),fluxbox o compiz entre otros.
+
+		->3 - El Gestor de pantalla (Display Manager)
+
+			El gestor de pantalla gestiona la sesion del usuario, así como el gestor de ventanas y entorno de escritorio que se utilizará en la sesión cuando el sistema se arranca con un runlevel de entorno gráfico.
+
+			En la pila de software se sitúa encima del gestor de ventanas ya que su funcionalidad se basa en la presencia de estos, pero es importante entender que el usuario es lo primero con lo que interactúa ya que maneja el inicio de sesión, por lo que es lanzado por el proceso init. Forma parte del cliente X y es un componente opcional.
+
+			Además del inicio de sesión y la selección del gestor de ventanas a usar, existen gestores de pantalla que permiten la selección de idioma e incluso la selección del sistema de escritorio a usar en caso de que haya múltiples disponibles.
+
+			Algunos gestores de pantalla son: gdm (GNOME), kdm (KDE), xdm (gestor por defecto de X Server), lightdm (XFCE, otros...)
+
+		->4 - Entorno de Escritorio:
+
+			El entorno de escritorio podríamos definirlo como el conjunto de elementos gráficos con los que el usuario interactúa. Puede ir desde un simple gestor de ventanas como FluxBox hasta un conjunto completo de aplicaciones de escritorio como GNOME. 
+
+			Un entorno de escritorio al uso se diferencia de un gestor de ventanas en que tienen una funcionalidad mucho más extendida, permitiendo a los clientes X y a los diferentes procesos en ejecución comunicarse entre sí (como el cortapega deltexto entre ventanas), y por lo tanto permitiendo la coordinacion entre aplicaciones para ofrecer un entorno de trabajo uniforme.
+
+			Podríamos decir que un entorno de escritorio básico consta de las siguientes aplicaciones:
+				• Gestor de ventanas.
+				• Administrador de Vistas.
+				• Barra de tareas.
+				• Gestor de archivos.
+				• Conjunto de aplicaciones
+
+			Algunos entornos de escritorio: GNOME(GTK), KDE(QT), XFCE, Cinnamon...
+			
+			Los entornos de escritorio disponen de librerias de las que obtienen recursos gráficos para su mejor funcionamiento, las librerías más extendidas son GTK y QT.
+
+
+*************
+Accesibilidad			
+*************
+			
+GOK				#Gnome Onscreen Keyboard - Teclado de pantalla
+Screen Reader	#Lector de pantalla			
+
+
+
+
+********
+COMANDOS
+********
+xhost			#Controla el acceso de usuarios al servidor X.		
+xwininfo		#Muestra información de la pantalla como: Posición, alto, ancho, profundidad de color, 
+
+
+
+		
+******
+Files
+******
+
+
+---X11---
+/etc/X11/xorg.conf			#Archivo principal para la configuracion de drivers,dispositivos,pantallas,... de X11
+
+---XDM---
+	X Display Manager: El el gestor de pantallas por defecto de una instalación "vanilla" o "sin modificar" de X Windows Manager
+
+
+	/etc?/X11?/XF86Config 		#De XDM o de XWindowServer????
+		#Sección Files
+			#include a Archivos de Fuentes
+			
+	/etc/X11/xdm/Xsetup			#Cambiar opciones de xdm como: fondo de escritorio,
+	
+	
+---KDE---
+
+	/etc/kde4/kdm/Xreset		#Se ejecuta automáticamente cuando un usuario de X sale de la sesión.

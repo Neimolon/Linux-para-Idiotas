@@ -1,0 +1,21 @@
+Puerto: 514 (UDP / TCP)
+
+Servicios: rsyslog
+
+Ficheros:
+	/etc/rsyslog.conf
+	
+	
+	#CONF en Receptor de logs
+		1º Descomentar la linea correspondiente al protocolo que queramos poner a escuchar (TCP o UDP) que aparece en el princio del archivo
+	 
+		#Info extra importante para el uso normal
+		mail.*      -/var/log/maillog		#Muy importante, el guión (-) que precede significa que el log se vuelca en memoria. 
+											#Para servicios que utilicen mucho la escritura es imprescindible
+
+	
+
+	
+	#CONF envio de logs en maquina que los genera.
+	
+		authpriv.*		@192.168.1.150		#Con @ udp, con @@ tcp   --->Con esto se reenvían los mensajes de log a la ip

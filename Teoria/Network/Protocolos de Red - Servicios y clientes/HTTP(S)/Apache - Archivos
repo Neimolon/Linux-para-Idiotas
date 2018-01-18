@@ -1,0 +1,39 @@
+*********************
+* Apache - Archivos *
+*********************
+
+**********
+* RedHat *
+**********
+	/etc/httpd/conf/httpd.conf 
+	/var/log/http/error.log
+	/var/log/http/access.log
+	/var/www/html							#Document Root
+
+**********	
+* Debian *
+**********	
+
+Configuracion:
+	
+	/etc/apache2/apache2.conf		#Archivo principal de configuracion
+	/etc/apache2/envvars			#Archivo por defecto para la definicion de parámetros
+	/etc/apache2/magic				#Deteccion de tipos mime para el manejador
+	/etc/apache2/ports.conf			#Definicion de puertos de escucha
+	/etc/apache2/conf-available/*	#Directorio para archivos de configuración generales
+	/etc/apache2/conf-enabled/*		#Archivos de configuración generales activos
+	/etc/apache2/mods-available		#Directorio para archivos de configuración y carga de modulos
+	/etc/apache2/mods-enabled		#Activacion de archivos de configuración y carga de modulos
+	/etc/apache2/sites-available	#Directorio para archivos de configuración de espacios web
+	/etc/apache2/sites-enabled		#Activacion de archivos de configuración de espacios web
+	
+Loggin:
+	/var/log/apache2/error.log		#Ruta de logs de errores por defecto
+	/var/log/apache2/access.log		#Ruta de logs de acceso por defecto
+	
+Document Root:
+	/var/www/html	
+	
+Documentacion:
+	/usr/share/doc/apache2-doc/				#Directorio de documentacion
+	/usr/share/doc/apache2-doc/examples/	#Ejemplos de configuraciones

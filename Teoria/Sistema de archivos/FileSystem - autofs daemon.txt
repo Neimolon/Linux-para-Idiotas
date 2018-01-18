@@ -1,0 +1,31 @@
+******
+AUTOFS
+******
+	- Permite montar y desmontar automáticamente sistemas de archivos locales y remotos, liberándonos de hacerlo manualmente mediante la orden mount y umount.
+
+	- Se basa en:
+		• Tablas de automontaje.
+		•Servicio de automontaje: Comprueba permanentemente si hay que realizar operaciones de automontaje:
+			/etc/init.d/autofs [start|stop]
+	
+	- No siempre esta instalada, el paquete es "autofs"
+	
+	
+	TABLAS DE AUTOMONTAJE
+
+	/etc/auto.master		#tabla maestra, se detalla el conjunto de directorios en los que aplica el automontaje.
+		###Formato y Ejemplo
+		<punto_de_monjae>	<fichero-tabla-secundaria>			<opciones>
+		/remote				/etc/auto.server					--timeout=60
+	
+	/etc/auto.[dir] 		#tablas secundarias.
+
+		/etc/auto.server		#Archivo que debemos crear para manejar la configuracion de ejemplo de auto.master
+			#Ejemplo
+			<local_folder> 		[<options>]		<host.domain.net>:<remote_folder>		#<local_folder> es relativo al punto de montaje de master
+			music								louis.example.com:/home/acdc/music/
+			research			-fstype=nfs4	albert.example.com:/home/einstein/data
+		
+		/etc/auto.misc			#Fichero por defecto para configuraciones varias
+		/etc/auto.smb			#Script que proporcionan acceso dinamico a smb
+		/etc/auto.net			#Script que proporcionan acceso dinamico a s.d.a en red

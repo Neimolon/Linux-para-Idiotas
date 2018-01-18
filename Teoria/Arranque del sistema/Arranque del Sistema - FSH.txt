@@ -1,0 +1,138 @@
+******************************
+* Arranque del Sistema - FSH *
+******************************
+
+***********
+GRUB Legacy
+***********
+
+/boot/grub/devices.map 					#Mapa con las asociaciones de dispositivos
+/boot/grub/[menu.lst|grub.conf] 		#Archivo de configuracion de GRUB Legacy
+	######### EJEMPLO DE MENU.LST | GRUB.CONF ##########
+	
+	#Opciones globales:
+	default=0											#Entrada por defecto
+	timeout=5											#Tiempo de espera
+	splashimage=/grub/bootimage.xpm.gz					#Imágen de fondo
+
+	#Opciones de cada imágen de Kernel
+	title  Arch Linux Stock Kernel						# "stanza" de cada imagen de kernel, se le proporciona nombre que mostrar en el menu
+		root   (hd0,0)									# Raiz de GRUB, define donde se encuentra "/boot"
+		kernel /vmlinuz-linux root=/dev/sda2 ro			# Ubicacion del kernel y opciones que se le pasan
+		initrd /initramfs-linux.img						# Localizacion del RamDisk
+
+	title  Arch Linux Stock Kernel Fallback
+		root   (hd0,0)
+		kernel (hd 0,0) /vmlinuz-linux root=/dev/sda2 ro	# La ruta es relativa a root pero se le pueden pasar otras localizaciones si hace falta.
+		initrd /initramfs-linux-fallback.img
+
+	#Otros sistemas operativos
+	title Windows
+		rootnoverify (hd0,1)							#Cargar kernel de otro sistema operativo y definir localizacion
+		chainloader +1									#Pasar el control a otro bootloader en el sector (+1) de la particion especificada previamente
+		
+	##################################################
+
+
+
+******
+GRUB 2
+******
+
+/boot/grub/grub.cfg		#ya no se modifica en este fichero, sino los scripts modulares que lo componen
+/etc/grub.d/*			#Plantillas que componen grubcfg
+/etc/default/grub		#Settings que componen grub.cfg, aquí van las modificaciones del usuario
+
+	######################### EJEMPLO DE GRUB.CFG ##############################	
+	
+	#Opciones Generales:
+	set default='0'; 															# Entrada de grub por defecto
+	if [ x"$default" = xsaved ]; then load_env; set default="$saved_entry"; fi	# Se permiten expresiones condicionales!!
+	set timeout=5																# Tiempo de espera
+
+	#Opciones sobre imagenes de kernel
+	menuentry 'Arch Linux Stock Kernel' {										#"stanza" de la entrada, iniciada con menuentry y delimitada por llaves.
+	  set root='(hd0,1)'; 														#Localizacion del root del grub
+	  linux /vmlinuz-2.6.32 ro root=/dev/hda5 mem=2048							#Localizacion del kernel y opciones 
+	  linuxrd /initrd-2.6.32 													#Localizacion del RamDisk
+	  
+	}
+
+	menuentry 'Arch Linux Stock Kernel Fallback' {
+	  set root='(hd0,1)'; set legacy_hdbias='0'										#Configuracion más esoterica
+	  legacy_kernel   '/vmlinuz-linux' '/vmlinuz-linux' 'root=/dev/sda2' 'ro'		#Configuracion más esoterica
+	  legacy_initrd '/initramfs-linux-fallback.img' '/initramfs-linux-fallback.img' #Configuracion más esoterica
+	}
+	
+	#Otros sistemas operativos
+	menuentry "Windows" {		
+		set root=(hd0,2)														#ya no se usa rootnotverify para otros S.O.
+		chainloader +1
+	}
+	##############################################################################
+	
+	##################### EJEMPLO DE /ETC/DEFAULT/GRUB############################	
+	GRUB_DEFAULT= 0/saved 								#con 0 hacemos que se seleccione por defecto la primera entrada, con la opción 1, la segunda...
+														#Con la opción saved, hacemos que siempre seleccione la última entrada que se ejecutó.
+	
+	GRUB_TIMEOUT=10 									#le ponemos el tiempo de espera hasta ejecutar la entrada que tenemos puesta como default.
+	
+	GRUB_HIDDEN_TIMEOUT=0 								#esconde el menú de entradas del grub, si le ponemos un tiempo mas alto lo que hace es esconder el menú, pero esperarse un tiempo hasta continuar. 
+	
+	GRUB_HIDDEN_MENU_QUIET=true/false 					#si está a "true" oculta la cuenta atrás, mientras que si está a "false" muestra la cuenta atrás.
+	
+	GRUB_DISTRIBUTOR=lsb_release -i -s 2> /dev/null || echo Debian 			#determina el nombre de la entrada del menú.
+	
+	GRUB_CMDLINE_LINUX="opciones"						#similar al altoptions del antiguo grub.
+	
+	GRUB_CMDLINE_LINUX_DEFAULT="quiet splash" quiet 	#sirve para agrupar las entradas iguales, mientras que splash sirve para que nos muestre la imagen de carga en vez de los mensajes del kernel
+	
+	GRUB_GFXMODE=640x480 								#La línea activa el grub gráfico. 
+														#Mediante el comando vbeinfo escrito en la linea de comandos del grub vemos las posibilidades.
+
+	#GRUB_DISABLE_LINUX_RECOVERY="true" 				#Descomenta esta línea para que no aparezca la opción de recovery mode en el menú
+	##############################################################################
+
+
+*******
+SystemD
+*******
+
+	## Almacenamiento y sobreescritura de Units ##
+/etc/systemd/system  -> Personalizados - máxima prevalencia
+/lib/systemd/system  -> Se encuentran la mayoria de los targets - prevalencia por defecto
+/run/systemd/system  -> No todos los linux tienen esta carpeta, pero puede contener ahi targets también. - minima prevalencia
+
+
+********
+SystemV
+********
+	/etc/inittab		# Tabla de configuracion de arranque de sistema, se define el runlevel por defecto.
+						
+						Formato de filas: "<id>:<runlevel>:<accion>:<comando>"
+							<id>				# Identificador de la entrada
+							<runlevel>			# Runlevel sobre el que se ejecuta
+							<accion>			# Nombre de la accion:
+								[initdefault] 	# - define el nivel de ejecución por defecto del sistema.
+								[sysinit]	 	# - ejecuta el script en el arranque del sistema, independientemente del nivel de ejecución.
+								[wait] 			# - ejecuta el comando indicado y espera su ejecución para pasar a la siguiente línea.
+								[respawn] 		# - ejecuta el comando el segundo plano y continua leyendo las líneas del inittab.
+							<comando>			# Comando a ejecutar
+
+						Ejemplos:
+							
+						
+
+	/etc/init.d/*		# Se encuentran los script de arranque/parada de los servicios en SysV
+
+	/etc/rc[X].d/		# Scripts por runlevel, suelen ser enlaces simbólicos al directorio /etc/init.d/* y se pueden crear manualmente o a través de "update-rc.d" o "chkconfig"
+						# [X] es el valor del runlevel -  
+
+						Nomenclatura de los enlaces: <S|K><NN><servicio>
+							<S|K>		#Start|Kill - Los Scripts que empiezan por 'S' indican arrancar y por 'K' parar el servicio.
+							<NN>		#Orden de ejecución - de 0 a 99 - Puede haber multiples servicios por cada numero que se lanzaran por orden alfabético.
+							<servicio>	#Nombre del servicio a ejecutar
+							
+								Ejemplo: S01systat
+
+	/etc/rc.local		#Script independiente del nivel de ejecución, se ejecuta después de todos los scripts de los niveles de ejecución.

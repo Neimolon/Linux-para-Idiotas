@@ -1,0 +1,42 @@
+###DHCP: Dinamic Host C? Protocol
+
+	dhclient <iface>	#Built-In DHCP Server??
+		-r	#release
+		-v	#??
+		
+	-DHCPD SERVER:
+	apt-get install isc-dhcp-server
+	/etc/dhcp/dhcpd.conf				#Fichero de ocnfiguracion del servifor DHCP
+	/etc/default/isc-dhcp-server.conf	#Definir el interfaz por el que se va a servir el DHCP
+	
+	
+		--- dhcpd.conf Sample ---
+		
+			authoritative;				#Cuando hay dos servidores dhcp en la red el que tenga este parámetro es el que va a servir a la red
+										#y cuando este servidor este caído servirá a la red el otro servidor.
+			default-lease-time 86400;
+			max-lease-time 86400;
+			ddns-updates on;					# Activa la actualización DNS mediante los valores asignados por DHCP.
+			ddns-update-style interim;			# Define el método de actualización automática de las DNS. 
+												# Los valores pueden ser ad-hoc, interim y none.
+			shared-network miredlocal {
+				subnet 192.168.1.0 netmask 255.255.255.0 {
+				option routers 192.168.1.1;
+				option subnet-mask 255.255.255.0;
+				option broadcast-address 192.168.1.255;
+				option domain-name "curso.esp";
+				option domain-name-servers 192.168.1.150, 80.58.0.33;
+				option netbios-name-servers 192.168.1.1;
+				range 192.168.1.50 192.168.1.90;
+				}
+				host m253 {
+					option host-name "m253.mi-red-local.com";
+					hardware ethernet 01:50:BF:27:1C:1C;
+					fixed-address 192.168.1.253;
+				}
+				host m254 {
+					option host-name "m254.mi-red-local.com";
+					hardware ethernet 00:01:03:DC:67:23;
+					fixed-address 192.168.1.254;
+				}
+			}

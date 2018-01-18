@@ -1,0 +1,148 @@
+***********
+* Systemd *
+***********
+
+	********************
+	1 - ¿Que es systemd?
+	********************
+	
+		Sistema y administrador de servicios para Linux, compatible con scripts de inicio SysV. Systemd hace uso de la paralelización agresiva, socket y activación D-Bus para iniciar los servicios. Ofrece la puesta en marcha de demonios bajo demanda, realiza el seguimiento de procesos utilizando Linux cgroups, soporta copia instantánea de volumen y la restauración de estado del sistema, mantiene puntos de montaje y automontaje e implementa un elaborado servicio lógico de control transaccional basado en la dependencia.
+
+		### Vamos a desglosar un poco esta definición: ###
+
+			- Capacidades de paralelización agresiva usando socket: systemd crea de una misma vez todos los sockets para todos los demonios acelerando así el arranque completo e iniciar más procesos en paralelo. En un segundo paso systemd ejecutará a la vez todos los demonios.
+
+			- Activación D-Bus para iniciar servicios: Utilizando la activación D-Bus, un servicio puede ser iniciado la primera vez que es accedido.
+			
+			-Seguimiento de procesos utilizando Linux cgroups: cgroup también llamados grupos de control, es una característica del kernel para crear límites, políticas e incluso explicar el uso de los recursos de ciertos grupos de procesos. cgroup asocia un conjunto de tareas con un conjunto de parámetros, para uno o más subsistemas, proporcionando un control de servicios y tareas, así como todos sus futuros ‘hijos’ en grupos jerárquico. Un subsistema es un módulo resultado de la agrupación de diversas tareas con el fin de mantener un mejor control sobre estas de forma particular.
+
+			Nota: La herramienta systemd-cgls nos muestra recursivamente el contenido del árbol de jerarquías de un determinado grupo de control de Linux.
+
+			- Mantiene puntos de montaje y automontaje: Puede utilizarse para montar o desmontar los puntos de montaje, quedando /etc/fstab como una fuente de configuración adicional a la que podremos llamar para su supervisión con la opción “comment=” de fstab para marcar las entradas controladas por systemd.
+
+			-En definitiva, systemd ha sido creado para ofrecer un inicio mas rápido y flexible que SysV, permitiendo el arranque paralelo de servicios y su inicio basado en la detección de conexión de nueva unidad externa.
+
+			Nota: Hasta ahora el PID1 era para el programa init, cosa que ha cambiado en systemd a favor de /usr/lib/systemd/systemd y además systemd al igual que Upstart deja de utilizar el archivo /etc/inittab
+
+		Algunas de las mejoras que ofrece systemd:
+
+		- Se ha mejorado sustancialmente la velocidad de inicialización del sistema
+		- systemd asume que cualquier dispositivo puede ser conectado o desconectado en cualquier momento (hotplug)
+		- systemd utiliza la activación de daemons por medio de sockets, aportando capacidades de paralelización
+		- Una de sus características es el registro (journal) mediante cgroups de todos los servicios y procesos iniciados
+		- systemd es modular, esto quiere decir que se han elaborado una seríe de “paquetes” en los que varios servicios son administrados de forma conjunta
+	
+	***********************************************
+	2 - ¿Que son las Units / Unidades de Servicios?
+	***********************************************
+	
+		systemd inicia y supervisa todo el sistema y se basa en la noción de unidades, compuestas de un nombre (el nombre del demonio) y una extensión. Será la extensión la que indique de que tipo de unidad se trata. Además cada unidad tiene su correspondiente archivo de configuración cuyo nombre es idéntico. Un ejemplo sería el servicio httpd.service cuyo archivo de configuración sería httpd.service. Los archivos de unidades disponibles en nuestro sistema podemos encontrarlos en /usr/lib/systemd/system/ y /etc/systemd/system/
+
+		Nota: Los archivos bajo el directorio /etc/systemd/system/ prevalecerán en caso de duplicados.
+
+		Existen siete tipos diferentes de unidades:
+			- service: Demonios que pueden ser iniciados, detenidos, reiniciados o recargados.
+
+			- socket: Esta unidad encapsula un socket en el sistema de archivos o en Internet. Cada unidad socket tiene una unidad de servicio correspondiente.
+
+			- device: Esta unidad encapsula un dispositivo en el árbol de dispositivos de Linux.
+
+			- mount: Esta unidad encapsula un punto de montaje en la jerarquía del sistema de archivos.
+
+			- automount: Encapsula un punto de montaje automático. Cada unidad automount tiene una unidad mount correspondiente, que se inicia al acceder al directorio de automontaje.
+
+			- target: Utilizada para la agrupación lógica de unidades. Referencia a otras unidades, que pueden ser controladas conjuntamente, un ejemplo sería multi-user.target, que básicamente desempeña el papel de nivel de ejecución 3 en el sistema clásico SysV.
+
+			- snapshot: Similar a las unidades target.
+
+			Entonces los archivos de configuración tendrán los nombres: programa.service, socket.socket, dispositivo.device, puntodemontaje.mount, etc…
+
+			Nota: La unidad default.target activa servicios y otras unidades dependientes, durante el arranque de systemd. Esto lo comentaremos en el apartado target
+
+	**************************************
+	3 - Compatibilidad de systemd con SysV
+	**************************************
+
+		- "systemd" ofrece compatibilidad con SysV(service y chkconfig) para aquellos servicios que aun soportan o funcionan únicamente con scripts de inicio SysV : 
+			
+			
+			service <servicio> stop		->		systemctl stop <servicio>.service	# Detener servicios	
+			chkconfig httpd on 			-> 		systemctl enabled httpd.service 	# Habilitar el servicio httpd al arranque del sistema 
+			chkconfig --list			-> 		systemctl list-unit-files			# Listar todas las unidades de servicios instaladas
+										-> 		systemctl list-units 				# Listar unidades de servicio que esten activadas
+
+			El equivalente en SysD al /etc/inittab es un target llamado "default.target" y tiene targets equivalentes a todos los runlevels (graphical.target,...). default.target es un enlace a alguno de los targets que equivalen a los runlevels clásicos. Por defecto suele ser graphical.target para los sistemas de escritorios.
+			
+			
+		Tips:
+			- Si no se especifica el sufijo, systemctl asumirá que es .service. Por ejemplo, netcfg y netcfg.service se consideran equivalentes.
+			- Los puntos de montaje se traducirán automáticamente en la correspondiente unidad .mount. Por ejemplo, si especifica /home será equivalente a home.mount.
+			- Similar a los puntos de montaje, los dispositivos se traducen automáticamente en la correspondiente unidad .device, por lo tanto, la especificación /dev/sda2 es equivalente a dev-sda2.device.
+
+			
+	***********************
+	4 - Comandos de SystemD
+	***********************
+	
+	
+		systemd-analyze	[opciones]		#Analisis del estado, tiempo de arranque ... de SystemD
+			critical-chain				#muestra el orden de carga de las diferentes unidades
+			plot						#Genera un SVG(Gráfico vectorial) detallando los servicios del arranque del sistema
+			blame						#Muestra una lista de todas las unidades en ejecución ordenadas por el tiempo que les llevó inicializarse
+										#Esta salida puede ser engañosa debido a que algun servicio puede ralentizarse por estar a la espera de la inicializacion de otro
+
+		systemd-delta					#muestra las sobrecargas de los targets
+
+		systemctl [opciones] <unit> 		#Comando de administracion del sistema en SystemD
+				#Actions
+			get-default						#Muestra el target con el que se inicial el sistema
+			set-default <taget>				#selecciona el target por defecto con el que se va a iniciar el sistema
+			isolate							# cambiar entre runlevels, equivale a telinit
+			start <unit>					# iniciar servicio
+			stop <unit>						# parar servicio
+			restart <unit>					# reiniciar servicio
+			try-restart <unit>				# reiniciar servicio solo si esta en ejecución
+			reload <unit>					# recargar servicio
+			status <unit>					# ver estado de servicio
+			enable <unit>					# Activa un servicio en el arranque	
+			reenable <unit>					# Regenera los enlaces que se llaman por las unidades de arranque (usar si se sobrecarga una unidad por ejemplo)
+			is-enabled <unit>				# Comprueba si una unit se arranca en el inicio
+			is-active <unit>				# Comprueba si una unit esta activa
+			disable	<unit>					# Quitar un unit del arranque
+			list-units						# Mostrar todas las unidades es uno
+			list-unit-files					# Listar todas las unidades 
+			list-dependencies				# ver las dependencias de un servicio
+			reboot							#Reiniciar sistema
+			halt							#Cerrar sistema
+			poweroff						#Apagar la máquina	
+			mask <unit>						#Enmascarar el servicio -  Esto enlaza las unidades a "/dev/null" haciendo imposible arrancarlas. 
+											#Es una version mas fuerte de disable
+			unmask <unit>					#Desenmascarar el servicio
+			snapshot <nombre>				#Crea un snapshot de toda la configuracion del sistema, 
+											# "systemctl isolate actualizacion.snapshot" para revertir el sistema al snapshot
+			delete <unit>					#Eliminar unidades
+			show <unit>						#Muestra el archivo de configuración del <unit>
+			help <unit>						#Muestra la página del manual asociada con una unidad
+			daemon-reload					#Recarga systemd, escaneando en busca de unidades nuevas o modificadas	
+			edit <unit>						#Permite editar configuracion de servicios creando una sobrecarga a la configuracion 
+											#Crea el fichero /etc/systemd/system/<unit>.d/override.conf
+				#Params
+			-? | --all							# Muestra todas las unidades (en uso o no) con la informaion de list units
+			-t | --type <type>					# Filtra las unidades por su tipo <type> = target,service,...
+			-p | --???? "<str>"					#No fuking idea
+			-h | --host <user@host> <command>	#lanzar comandos remotamente como ssh
+	
+	
+	
+	***********************
+	4 - Ficheros de SystemD
+	***********************
+
+			## Almacenamiento y sobreescritura de Units ##
+		/etc/systemd/system  -> Personalizados - máxima prevalencia
+		/lib/systemd/system  -> Se encuentran la mayoria de los targets - prevalencia por defecto
+		/run/systemd/system  -> No todos los linux tienen esta carpeta, pero puede contener ahi targets también. - minima prevalencia
+
+
+
+	

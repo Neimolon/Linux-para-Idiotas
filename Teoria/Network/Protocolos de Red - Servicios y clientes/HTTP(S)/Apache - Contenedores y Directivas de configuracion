@@ -1,0 +1,364 @@
+******************************
+* Contenedores de directivas * 
+******************************
+
+	Antes de entrar en materia con las directivas y los contenedores conviente tener claras una serie de cuestiones:
+
+	*************************************
+	Contexto de directivas y contenedores 
+	*************************************
+		Indica en dónde es aceptada una directiva de configuración.
+	
+		-> Contextos:
+			- server config : La directiva puede usarse en los ficheros de configuración del servidor 
+
+			- virtual host : Puede aparecer dentro de un contenedor <VirtualHost> en el fichero de configuración del servidor.
+
+			- directory : Puede usarse dentro de contenedores <Directory>, <Location>, <Files>, <If>, <Proxy> - sujeta a las restricciones :
+				* La directiva AllowOverride funciona en las secciones <Directory>.
+				* Las directivas Options FollowSymLinks y SymLinksIfOwnerMatch Options funcionan solo en las secciones <Directory> y en los ficheros .htaccess.
+				* La direcitva Options no puede ser usada en secciones <Files> y <FilesMatch>.
+
+			- .htaccess : Puede aparecer dentro de ficheros .htaccess
+				*Puede no ser procesada, dependiendo de AllowOverride.
+		
+	*************************************************
+	Orden de fusión de las secciones de configuración
+	*************************************************
+		El como se fusionan las secciones va en relacion con la precedencia de ejecución de la configuración, por lo que es un punto importante a tener en cuenta para obtener el resultado deseado:
+	
+			-> Precedencia al fusionar secciones de configuración:
+				1º <Directory> and .htaccess simultaneamente ( .htaccess si se permite AllowOverride )
+				2º <DirectoryMatch> y <Directory "~">
+				3º <Files> y <FilesMatch> simultaneamente
+				4º <Location> y <LocationMatch> simultaneamente
+				5º <If>
+			
+			-> Ejemplo #1: A > B > C > D > E (la última regla es la que prevalece)
+				
+				<Location "/"> E </Location>
+				<Files "f.html"> D </Files>
+				<VirtualHost *>
+					<Directory "/a/b"> B </Directory>
+				</VirtualHost>
+				<DirectoryMatch "^.*b$"> C </DirectoryMatch>
+				<Directory "/a/b"> A </Directory>
+			
+			-> Ejemplo #2:
+				
+					<Location "/">
+						Require all granted
+					</Location>
+
+					# Whoops!  This <Directory> section will have no effect
+					<Directory "/">
+						<RequireAll>
+							Require all granted
+							Require not host badguy.example.com
+						</RequireAll>
+					</Directory>
+				
+	******************
+	Caracteres comodín
+	******************
+
+		-> En <Directory>, <Files>, y <Location> se puede usar comodines:
+			"*" 	equivale a cualquier secuencia de caracteres
+			"?" 	equivale a cualquier carácter individual
+			"[seq]" equivale a cualquier carácter en seq. 
+			"/"		Ningún carácter comodín equivale a "/", que debe siempre especificarse explícitamente.
+			
+	
+	************
+	Contenedores
+	************
+	
+	- Que se evaluan al (re)inicio del servidor:
+		
+		<IfDefine [!] parameter_name> ... </IfDefine>
+			- Descripción: Evalúa si existe un parametro definido
+			- Contexto: server config, virtual host, directorio, .htaccess
+			- Prevalencia: Todo
+			
+		<IfModule [!] file|identifier> ...</IfModule>
+			- Descripción: Evalúa si un modulo está activado
+			- Contexto: server config, virtual host, directorio, .htaccess
+			- Prevalencia: Todo
+		
+		<IfVersion [!<=>] version> ... </IfVersion>
+			- Descripción: Contiene directivas que se aplican a la versión correspondiente
+			- Contexto: server config, virtual host, directorio, .htaccess
+			- Prevalencia: Todo
+
+	- Que se evaluan para cada peticion:
+	
+		-> <VirtualHost addr[:port] [addr[:port]] ...> ... </VirtualHost>
+			- Descripción: Contiene directivas específicas para un hostname o una dirección ip .
+						   La directiva "ServerName" es obligatoria dentro de este bloque.
+						   En versiones anteriores de apache se indica un vhost de nombres con NameVirtualHost
+			- Contexto:	server config
+				
+		-> <Directory [~] /dir/path> ... </Directory>	
+		-> <DirectoryMatch dir_regex> ... </DirectoryMatch>
+			- Descripción: Se aplica a directorios coincidentes con la búsqueda y subdirectorios
+			- Contexto:	server config, virtual host
+		
+		-> <Files [~] file.name> ... </Files>		
+		-> <FilesMatch file_regex> ... </FilesMatch>
+			- Descripción: Se aplican a todos los ficheros coincidentes sin importar su directorio
+			- Contexto:	server config, virtual host, directorio, .htaccess
+		
+		-> <Location [~]  URL-path|URL > ... </Location>
+		-> <LocationMatch "url_regex"> ... </Location>
+			- Descripción: Se aplica a urls coincidentes con la búsqueda 
+			- Contexto:	server config, virtual host
+		
+		-> <If expression> ... </If>
+			- Descripción: Se aplican si una peticion cumple con la condición. 
+			- Contexto:	server config, virtual host, directorio, .htaccess
+			
+		-> 	<ElseIf expression> ... </ElseIf>
+			- Contexto: Se aplican las directivas en caso que no se haya cumplido el If anterior y se haga match con la expression a evaluar
+			- Contexto:	server config, virtual host, directorio, .htaccess
+				
+			
+		-> <Else> ... </Else>
+			- Descripcion: Conjunto de directivas a aplicar en caso de que el <If> o <ElseIf> previo no haya hecho match
+			- Contexto:	server config, virtual host, directorio, .htaccess
+		
+		-> <Proxy wildcard-url> ...</Proxy>
+		-> <ProxyMatch wildcard-url> ... </ProxyMatch>
+			- Descripción: Se aplica a proxys disponibles (requiere mod_proxy)
+			- Contexto:	server config, virtual host
+		
+	*********
+	Direcivas
+	*********
+	
+		-> Configuracion de Servidor, VHosts y Directorios principalmente, directivas más generales:
+		   ----------------------------------------------------------------------------------------
+		   
+			Listen [IP-address:]portnumber [protocol]
+				Descripción: Dice a apache en que puerto/ dirección debe levantar un servicio de escucha
+				Context:	server config
+				
+	
+			ServerRoot directory-path
+				Descripción: Ruta de los archivos de configuración del servidor, y es la ruta sobre la que el resto de rutas en Include y LoadModule son relativas
+				Contexto: server config
+				
+			ServerName [scheme://]fully-qualified-domain-name[:port]
+				Descripción: Dominio con el que el servidor se identifica a si mismo, tambien sirve para diferenciar los virtual host basados en nombre (se suele usar en conjuncion con ServerAlias). Si no está definida Apache intenta definirlo a travér de una resolucion DNS inversa.
+				Contexto:	server config, virtual host
+				
+			ServerAlias hostname [hostname...]
+				Descripción: Permite nombres de dominio alternativos en un virtualhost que responderan la petición como si fuese el nombre del servidor.
+				Contexto:	virtual host
+				
+			ServerAdmin email-address|URL
+				Descripción: Dirección de email del administrador que aparecerá en los mensajes de error enviados a los clientes
+				Contexto:	server config, virtual host
+			
+			DocumentRoot directory-path
+				Contexto:	server config, virtual host
+				Descripción: Directorio donde se localiza la raiz de los ficheros a mostrar por el servidor web
+				
+				
+			DirectoryIndex <file.ext> <file2.ext2>	
+				Descripcion: Buscar en el directorio raiz y mostrar por defecto<file.ext> <file2.ext2> si existen
+				Context:	server config, virtual host, directory, .htaccess
+			
+			CustomLog file|pipe format|nickname [env=[!]environment-variable| expr=expression]
+				Descripcion : Ruta donde se almacenan los logs de accesos.
+				Context:	server config, virtual host
+			
+			ErrorLog file-path|syslog[:facility]
+				Descripción: Ruta donde se almacenan los logs de error
+				Contexto:	server config, virtual host
+				
+			ServerSignature On|Off|EMail			
+				Descripción: Configuración del footer mostrado en las paginas generadas por apache (404,...)
+				Contexto: server config, virtual host, directorio, .htaccess
+			
+				
+			UseCanonicalName On|Off|DNS
+				Descripción: Configura como el servidor determina hostname para poder ser autoreferenciado en la construccion de URL ([SERVER_NAME])
+							 Off :	Se utiliza el nombre de dominio introducido por el cliente en la petición
+							 On : Existen casos en los que los clientes tengan que autenticarse doblemente cuando utilizan shortnames en las peticiones	
+							 DNS : Para clientes http antiguos que no implementan la cabecera Host, se realiza por resolucion inversa.
+				Contexto:	server config, virtual host, directorio
+				
+			Options [+|-]option [[+|-]option] ...
+				Description: Configura que caracteristicas están disponibles en un directorio en particular
+				Contexto:	server config, virtual host, directorio, .htaccess
+				Valores:
+					All : Todas las opciones excepto MultiViews. This is the default setting.
+					ExecCGI : Se permite la ejecución de CGI scripts usando mod_cgi. 
+					FollowSymLinks : Permite usar enlaces simbolicos localizados en una carpeta del servidor
+					SymLinksIfOwnerMatch : Permite usar enlaces simbolicos localizados en una carpeta del servidor si el propietario del destino es el mismo que el del enlace
+					Indexes : Muestra una lista formateada del contenido del directorio en ausencia de una directiva DirectoryIndex
+					Includes : Permite el uso includes en el lado del servidor - filtrado con el modulo mod_includes - no me entero de esto
+					IncludesNOEXEC : Server-side includes are permitted, but the #exec cmd and #exec cgi are disabled. 
+					MultiViews : Content negotiated "MultiViews" are allowed using mod_negotiation.
+					
+					
+			Order [Allow,Deny | Deny,Allow]
+				Descripción:  Precedencia en las directivas Allow y Deny:
+					- Allow,Deny: Primero se evaluan las directivas Allow, si no coincide ninguna la peticion es rechazada. Luego se evaluan las directivas Deny si alguna coincide es rechazada, si no hay ninguna coincidencia son rechazadas
+					- Deny,Allow: Primero se evalua la directiva Deny, si alguna coincide es denegada excepto que tambien haya coincidencia con Allow. Se permiten todas las peticiones que no encuentren coincidencias con Allow ni con Deny
+				Context:	directory, .htaccess
+				
+			Allow from [all|host|env_var]
+				Descripcion: permite el acceso de host espedificos al servidor
+				Context:	directory, .htaccess
+				
+			Deny from [all|host|env_var]
+				Descripcion: Deniega el acceso de host espedificos al servidor
+				Context:	directory, .htaccess
+				
+			AllowOverride All|None|directive-type [directive-type]
+				Descripcion: Define las directivas que se permiten usar en los archivos .htaccess
+					-> Tipos de Directivas:
+						- All: Todas las directivas son permitidas
+						- None: Ninguna directiva es permitida
+						- AuthConfig: Permite directivas de autenticación (  AuthGroupFile, AuthName, AuthType, AuthUserFile, Require...)  
+						- FileInfo: Permite el uso de directivas que manejan documentos segun su:
+							- Tipo (ErrorDocument,SetHandler,SetInputFilter,SetOutputFilter ... ) 
+							- Metadatos (Header, RequestHeader, SetEnvIf, BrowserMatch, CookieExpires, CookieDomain,CookieName ...)
+							- Reescritua: mod_rewrite(RewriteEngine, RewriteOptions, RewriteBase, RewriteCond, RewriteRule)
+							- Acción: mod_actions (...)
+						- Indexes:  (AddDescription, AddIcon, DefaultIcon, DirectoryIndex, IndexOptions...)
+						- Limit:(Allow, Deny, order)
+						- Options[=Option,...] : Permite el uso de la directiva options, dando la posibilidad de delimitar las opciones permitidas 
+				Contexto:	directorio				
+			
+			HostnameLookups On|Off|Double
+				Descripcion: Controla la resolucion inversa a través de dns
+					On: Permite el loggin DNS y la pasa a travles de la variable REMOTE_HOST
+					Double: se suele usar con mod_authz_host para resolver los host permitidos
+					Off: Ahora tráfico en los sitios donde no sea necesaria la resolucion inversa
+				Contexto:	server config, virtual host, directorio
+			
+			
+			AddDefaultCharset On|->Off|charset
+				Descripcion: Especifica el valor del charset cuando el content_type de una respuesta es /text/plain|html . 
+							 Es sobreescrita por la etiqueta meta del body.
+				Contexto:	server config, virtual host, directorio, .htaccess
+			
+			Alias [URL-path] file-path|directory-path
+				Desc: Mapea URL hacia localizaciones especificas
+				Contexto: server config, virtual host, directory
+				Ejemplo: Alias "/image" "/ftp/pub/image"
+				
+			AliasMatch regex file-path|directory-path
+				Desc: Mapea URL hacia directorios usando regex
+				Context:	server config, virtual host
+				Ejemplo:	AliasMatch ^/manual(?:/(?:de|en|fr|ja|ko|ru))?(/.*)?$ "/var/www/manual$1"
+		
+		
+			AddHandler cgi-script .cgi	<.ext>					
+				Descripción: Permite ejecutar archivos con extensiones <.ext>
+		
+			SetHandler handler-name|None
+				Descripción: hace que los ficheros coincidentes con el contenedor que lo englobe sean procesador por un manejador diferente al que trae por defecto apache.
+				Contexto:	server config, virtual host, directorio, .htaccess
+				
+				
+		-> Directivas de autenticación de usuarios y grupos (generadas comando htpasswd)
+		--------------------------------------------------------------------------------
+		
+			AuthType None|Basic|Digest|Form
+				Desc: Define el tipo de autenticacion a utilizar para un directorio (requiere AuthName y Require, así como los modulos de autenticacion activados)
+					None:   Sin autenticacion
+					Basic:  implementa mod_auth_basic
+					Digest: implementa mod_auth_digest
+					Form:   implementa mod_auth_form
+				Context: directory, .htaccess
+				
+			AuthName "String"
+				Descripción: Configura el nombre del ámbito de la autentificacion. Es el texto que se muestra en la caja de dialogo de autentificacion 
+				Context:	directory, .htaccess
+				
+			AuthBasicProvide ->file|dbm|provider_name...
+				Desc: Configura donde se deben buscar la información de autenticación, "file" por defecto. Necesita el modulo correspondiente 
+				Context: directory, .htaccess
+			
+			AuthUserFile file-path
+				Desc: Ruta al archivo donde están almacenadas los usuarios y los hashes de las contraseñas (creadas con htpasswd)
+				Context:	directory, .htaccess
+				
+			AuthGroupFile file-path
+				Desc: Ruta al archivo donde se relacionan los grupos y los usuarios correspondientes 
+				Context:	directory, .htaccess
+			
+				
+			Require [not] entity-name [entity-name] ...
+				Desc: Comprobación de si un intento de identificación está permitido
+					Require all granted : Acceso permitido incondicionalmente
+					Require all denied : Acceso denegado incondicionalmente
+					Require valid-user : Permite el acceso de cualquier usuario válido
+					Require user userid [userid...] : Permite el acceso de usuarios con un ip predeterminado
+					Require group group-name [group-name..] : Permite el acceso de usuarios pertenecientes a un grupo predeterminado
+					Require ip ip-addr [ip-addr...] : permite el acceso a un rango de ips específico
+					Require expr expression : Permite el acceso si la expresion se evalua como "true"
+					Require method http-method [post|get|...] : Permite determinados tipos de metodos http
+					Require env env-var... : Permite el acceso si una variable ha sido definida
+				Context:	directory, .htaccess	
+				
+			AuthDBMType ->default|SDBM|GDBM|NDBM|DB
+				Desc: Define el tipo de base de datos usada para almacenar las contraseñas
+				Context:	directory, .htaccess
+				
+			AuthDBMUserFile file-path
+				Desc: Ruta de la base de datos donde se almacenan usuario y claves. Usar en caso de ficheros grandes
+				Context:	directory, .htaccess
+				
+			AuthDBMGroupFile file-path
+				Desc: Define la ruta del archivo de base de datos de grupos
+				Context:	directory, .htaccess
+				
+		-> Directivas de cifrado SSL
+		----------------------------
+			
+			SSLEngine on|->off|optional
+				Desc: Activa el uso del protocolo SSL
+				Context:	server config, virtual host
+		
+			SSLCertificateFile file-path
+				Desc: Configura la ruta del archivo que contiene la clave pública del certificado (.pem o .crt normalmente)
+				Context:	server config, virtual host
+				
+			SSLCertificateKeyFile file-path
+				Desc: Configura la ruta del archivo que contiene la clave privada (.pem o .key normalmente)
+				Context:	server config, virtual host
+				
+		-> Calibración de parámetros de rendimiento del servidor:
+		---------------------------------------------------------
+		
+			StartServers number
+				Desc: Numero de procesos hijos creados en el inicio del servidor
+				Context:	server config
+				
+			MinSpareServers number
+				Desc: Número mínimo de procesos hijos en estado ocioso(sin manejar peticiones) . Debe tocarse en caso de sitios muy ocupados. Un valor demasiado alto es mala idea
+				Context:	server config	
+				
+			MaxSpareServers number
+				Desc: Número máximo de procesos hijos en estado ocioso
+				Context:	server config	
+				
+			ServerLimit number
+				Desc: 	Numero máximo de "MaxRequestWorkers" durante el tiempo de vida de un proceso de apache. 
+						Si es demasiado alto puede consumir demasiada memoria compartida. 256 por defecto.
+						No funciona de la misma manera con el mpm_prefork que con el mpm_worker o mpm_event
+				Context:	server config	
+				
+			MaxRequestWorkers number
+				Desc: 	Numero máximo de procesos hijos o threads que serán lanzadaos para atender peticiones.
+						Reemplaza la directiva MaxClients desde la version 2.3.13
+				Context:	server config	
+				
+			MaxConnectionsPerChild number
+				Desc: Numero máximo de conexiones que un proceso hijo puede manejar.
+					  Reemplaza la directiva "MaxRequestsPerChild"
+				Context:	server config

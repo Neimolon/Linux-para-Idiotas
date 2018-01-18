@@ -1,0 +1,124 @@
+*****************************
+* Instalacion desde fuentes *
+*****************************
+
+	Tipos de código:
+		- Fuente: El código fuente puede ser compilado desde cualquier equipo que tenga instalado el compilador y las herramientas asociadas necesarias (principalmente librerías de desarrollo)
+		
+		- Binario(Compilado): Es directamente ejecutable, pero solo sobre un sistema operativo y sistema hardware específico.
+
+	**********************************
+	Prerrequisitos para la compilación
+	**********************************
+		
+		Para poder compilar el código fuente y así hacer disponible el software en un sistema Linux, es necesario cumplir ciertos prerrequisitos:
+
+			-Compilador:
+
+				Se debe tener instalado un compilador para el lenguaje con el que el software fue escrito, por ejemplo GCC (GNU Compiler Collection) para compilar C, C++, etc.
+
+			-Librerías de desarrollo:
+
+				-Se debe disponer de las librerías de desarrollo adecuadas instaladas en el equipo. Éstas se instalan a parte de las librerías binarias. Las librerías binarias son necesarias para ejecutar el código binario, mientras que las librerías de desarrollo son necesarias para compilar el código fuente. Con programas antiguos, se puede encontrar con el problema de que utilicen librerías antiguas que ya no esten disponibles, o bien que han sido actualizadas y el antiguo programa ya no compila con las nuevas librerías.
+
+			-Utilidades:
+
+				Se debe disponer de utilidades para descomprimir el código fuente  y extraer los ficheros, como tar, gzip, gunzip, etc . Estas utilidades, que suelen presentarse en un paquete, están instaladas por defecto en la mayor parte de sistemas Linux.
+
+			-Documentación
+
+				Al descargar un paquete de código fuente, por lo general se incluye documentación, que puede indicar algún requerimiento de sistema específico, como por ejemplo, que sea necesario instalar algún paquete antes de compilar el código fuente. Esté atento/a a estas indicaciones.
+				
+				Los ficheros de documentación genéricos que encontrará en su directorio de programa serán:
+
+					COPYING : Licencia de uso del software.
+					CHANGELOG : Historial de cambios en las distintas versiones.
+					NEWS : Historial de cambios, desde un punto de vista más funcional y menos técnico.
+					README : Documentación general del programa.
+					INSTALL : Manual de instalación del programa.
+
+				Importante: Antes de continuar con la compilación, debería de leer al menos los dos últimos documentos, ya que no existe un procedimiento estándar, y si debe de cumplir algunos prerrequisitos (como software que deba ser instalado previamente a su programa)
+
+					En otros casos, las especificaciones de requerimientos se referirán a limitaciones de CPU o de kernel. Puede obtener esta información de su sistema por medio del comando:
+						uname -a	# Mostrará la versión del kernel, así como la arquitectura del procesador (i386 o x86_64)
+						
+						
+		Instalar herramientas para compilacion:
+		
+			CentOS:	yum groupinstall "Development Tools"
+			Debian: apt-get install build-essential
+		
+	***************************	
+	Obtención del código fuente
+	***************************	
+	Algunos ejemplos de Repositorios de Software Libre son: SourceForge, Google Code o Freecode.
+
+	Una vez localizado el programa, hay que conocer cuáles son los ficheros que debemos de descargar, en función de nuestra plataforma. Éstos suelen venir comprimidos en lo que se denominan tarballs ya que se crean con la utilidad tar y luego se comprime bien sea con gzip o con bzip2, dando lugar a extensiones como: .tgz, .tar.gz, .tbz, .tbz2, tar.bz2, etc También se pueden encontrar discribuciones creadas con pkzip, cuya extensión es .zip, y que se extraen en Linux con la utilidad unzip.
+
+	Si el fichero tiene una extensión ".src.rpm" se trata del código fuente de un paquete RPM. Éstos se pueden convertir en paquetes RPM binarios con el comando:
+		rpmbuild --rebuild programa-1.2.src.rpm
+
+	Desempaquetado del código fuente Para descomprimir la tarball se utiliza el siguiente comando:
+		tar xvzf programa-1.2.tgz
+
+	Si se pretende que todos los usuarios tengan acceso al programa, puede extraer los ficheros a un subdirectorio de "/usr/src". Este directorio está creado para guardar una copia del código fuente de las aplicaciones que se instalen en el sistema por medio de la compilación, por si fuera necesario acceder al código con posterioridad.
+	
+	Generalmente, el directorio "/usr/src" sólo es escribible por "root", luego tendrá que adquirir privilegios de superusuario para extraer ahí su tarball. Puesto que cualquier usuario tiene permisos para compilar, es posible que prefiera dar permisos sobre el directorio con los ficheros extraídos a su usuario ordinario, y proceder a la compilación con este mismo usuario.
+
+
+	*****************************
+	Compilación del código fuente
+	*****************************
+
+	Una vez que se ha extraído el código fuente, leído la documentación, se ha asegurado de que su sistema cumple los prerequisitos y ha instalado las herramientas adicionales necesarias, puede empezar a configurar y compilar el software.
+	
+	--> ./configure
+
+		Algún software viene acompañado de una herramienta de configuración, a la que se llama desde ./configure que se encarga de escanear el sistema y ajustar el fichero Makefile, que controla el proceso de compilación, a las peculiaridades de su instalación. Si por ejemplo encuentra que faltan librerías para la compilación, el script dará un mensaje de error y terminará su ejecución.
+
+	-->	Makefile
+
+		En otras ocasiones, será usted quien tenga que editar y configurar manualmente el fichero Makefile para adaptarlo a las peculiaridades de su instalación, como indicar la localización donde se quiere hacer la instalación o habilitar librerías que se usarán en tiempo de compilación. La documentación describe cómo deben hacerse estos cambios.
+	
+		Es buena práctica el verificar que en el fichero Makefile se ha indicado que la instalación se hará dentro del directorio /usr/local, que viene a ser el lugar más adecuado.
+
+	--> make
+		
+		Una vez ejecutado el script de configuración, basta con ejecutar el comando "make" en el directorio en que se descomprimió el código fuente para comenzar la compilación, que dependiendo de la aplicación puede durar segundos o minutos.
+
+		Durante el proceso de instalación se irán mostrando distintos mensajes por pantalla, e incluso una barra de progreso. 
+		
+		Si en algún momento la instalación finaliza inapropiadamente, deberá localizar el primer mensaje de error que se haya mostrado para ver qué falló.
+
+		Lo más común es que falten librerías, pero si el código es muy antiguo, puede también tratarse de problemas de compatibilidad, incluso de sintaxis que el compilador ya no comprende. En ese caso, habría que editar el código y actualizarlo.
+
+		
+	************************	
+	Instalación del software
+	************************
+	
+		Una vez compilado el programa, ya se puede instalar. Para ello:
+		
+	--> make install
+
+		Se utiliza el comando make install ejecutado como root. Lo que hace este comando es copiar cada fichero donde conviene y establecer los permisos adecuados. 
+		El fichero ejecutable de la aplicación lo copiará en "/usr/local/bin", generalmente, y también se encargará de que los manuales del programa se copien en un lugar apropiado para poder ser consultados con el comando man.
+
+	--> install
+
+		Otra opción es tener que hacer esto manualmente con el comando install. 
+
+		Si el programa es un servidor o utilidad que debe ponerse en marcha de forma automática, tendrá que realizar pasos adicionales de configuración. Por ejemplo, es posible que deba crear un script de inicio para SysV, iniciar el programa a través de una línea de comando en /etc/rc.local o alguna otra secuencia de comandos genérica de inicio del sistema. Necesitará crear una entrada inetd o xinetd para el programa; tal vez crear una entrada en /etc/profile o algún otro script para iniciar el programa para usuarios individuales... Consulte la documentación del programa si no está seguro/a de cómo proceder. Ésta generalmente incluirá sugerencias y configuraciones de muestra que se pueden modificar para adaptarlas a su sistema.
+
+	******************************************	
+	Desinstalación y actualización de software
+	******************************************
+	
+	--> make uninstall
+	
+		Si utilizó make install para instalar el programa, lo más común es que se haya implementado también una opción "make uninstall" que lo desinstalaría. 
+		
+		Debe ejecutarse como root en el directorio donde está el código fuente original. Si la opción no está soportada, igualmente que en el momento de la instalación, los ficheros que entonces fueron copiados ahora deberán de ser eliminados para completar la desintalación.
+
+		La mejor manera de actualizar software instalado desde el código fuente usando otra distribución de código fuente, es generalmente compilar la nueva versión, desinstalar el software antiguo e instalar el nuevo. Este procedimiento garantiza que no quedan ficheros de la antigua versión en la nueva. Asegúrese de hacer copia de seguridad de los ficheros de configuración y de verificar que su configuración es correcta después de instalar la nueva versión.
+

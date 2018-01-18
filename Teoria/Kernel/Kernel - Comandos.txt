@@ -1,0 +1,127 @@
+*********************
+* Kernel - Comandos *
+*********************
+
+************************************************
+Informacion, Monitorización y Control del kernel
+************************************************
+
+sysctl					#System Control - modificar los parámetros del kernel en tiempo de ejecución, No persistente.
+	-p 					#para hacer persistentes los cambios sin reiniciar							
+							#Ejemplo:
+							#sysctl net.ipv4.ip_forward=1 (Activa forwarding)
+
+udevadm					#udev Administration Tools - control en tiempo de ejecucion
+	monitor				#Igual a udevmonitor
+
+udevmonitor				#muestra los eventos de udev y el kernel por la salida estándar. No en todas las distros. Enlace simbólico a "udevadm monitor"
+
+uname							#Informacion del kernel
+	-a | --all					#All - Muestra toda la informacion disponible
+	-r | --kernel-release		#Release - version del kernel
+	-k | --kernel-name			#Nombre del Kernel
+	-n | --node-name			#Nombre del host del nodo de red (nombre de la máquina)
+	-m | --machine				#Arquitectura de la CPU
+	-p | --processsor			#Descripcion de la CPU
+	-i | --hardware-platform	#Fabricante de la placa base
+	-o | --operating-system		#Version del SO
+	--help						#Ayuda
+	--version					#Version de uname
+
+lsdev					#Muestra informacion sobre hardware instalado (dispositivo en uso, dirección I/O, canales IRQ/DMA.)
+						#Saca la info de  /proc/interrupts, /proc/ioports y /proc/dma
+						#en Debian 9 no viene por defecto. Se debe instalar en el paquete "procinfo"
+
+lspci 					#Muestra información sobre todos los buses PCI del sistema y todos los dispositivos que están conectados a ellos.
+
+lsusb 					#Muestra información de los buses USB de sistema y los dispositivos que están conectados a ellos.
+
+dmesg					#Kernel message system
+						
+	###Gestión de modulos del kernel 
+	
+lsmod								#Listar los módulos del kernel
+
+modinfo <modulo>					#Muestra la informacion especifica de un modulo. (Importante: dá la localizacion del modulo en las librerias)
+	-p  <modulo>					#Parameters - Listar los parametros que se le pueden pasar a un modulo en concreto
+
+insmod <ruta_modulo> 				#Instalar módulo (no tiene en cuenta dependencias)
+
+rmmod <modulo>						#Eliminar módulo (no tiene en cuenta dependencias)
+
+modprobe <modulo>					#Gestionar módules del kernel y sus dependencias (algunos módulos tienen dependencias en otros que si no están, fallarán)
+		-l							#List - Lista todos los módulos disponibles.
+		-a							#All - Inserta todos los módulos.
+		-r <modulo>					#Remove  - Eliminar modulo
+		-v | -vv | -vvv				#Vervose - a diferentes niveles de información
+		-f <modulo>					#Force   - Forzar la instalacion de un módulo
+		-n | --dry-run				#Not Install -  simula la instalacion de un módulo, junto con vervose puede dar informacion interesante
+		--show-depends <modulo>		#Muestra las dependencias de un módulo
+
+depmod								#Crear archivos .dep requeridos por modprobe.		
+	-a
+
+
+********************** 
+Compilacion del Kernel
+**********************
+
+make [<objetivo>]		#Compilar código fuente. Las opciones a utilizar se basan en el archivo ".config", make lo busca por defecto en el directorio en el que se ejecuta.
+						#En el README que hay con cada fuente viene informacion detallada de uso, ya que los objetivos varían dependiendo del codigo.
+- <objetivos_kernel> 
+	clean				# Elimina la mayoría de ficheros generados, manteniendo los suficientes para construir los módulos externos.
+	mrproper			# Elimina la configuración actual y todos los ficheros generados
+	distclean			# Elimina los ficheros backup, ficheros de parches y similares
+
+	config				#Compilar la configuracion del kernel a través de preguntas interactivas
+	oldconfig			#En caso de aprovechar la configuracion de un kernel anterior, pregunta solo opciones nuevas
+	defconfig			#Genera un fichero de configuración con valores por defecto
+	silentoldconfig		#En caso de aprovechar la configuracion de un kernel anterior, pregunta solo opciones nuevas - mejor presentacion
+	menuconfig			#Compilar la configuracion del kernel a través de menú de shell
+	xconfig				#Compilar la configuracion del kernel a través de menú de X (QT requerido)
+	gconfig				#Compilar la configuracion del kernel a través de menú de X (GTK requerido)
+
+	all					#Compilar el kernel (sin modulos)
+	modules_install		#Compilar los modules
+
+	install				#Instalar el kernel en el sistema (configuraciones de grub,etc)
+
+	dep					#Realiza la que genera el archivo modules.dep de dependencias de módulos.
+	
+	rpm-pkg				#Generar paquete de fuentes RPM del kernel
+	binrpm-pkg			#Generar paquete binario RPM del kernel
+	deb-pkg				#Generar paquete binario APT del kernel
+
+***********
+* RamDisk *
+***********
+
+mkinitrd <nombre_imagen> <version>			#Generar RamDisk (deprecated)
+
+	Ejemplo: mkinitrd /boot/initrd-2.6.32-68.img 2.6.32-68
+
+mkinitramfs [<opciones>] <version>		#Generar RamDisk
+	-o <outfile>						#Nombrar la imagen generada
+	-v									#Verbose
+	-d <confdir>						#Direcorio de configuracion (por defecto /etc/initramfs-tools)
+	-r <rootdir>						#Establece la particion raiz del sistema Linux
+	-k									#Preserva el directorio temporar usado al crear la imagen en vez de borrarlo
+	
+	Ejemplo: mkinitramfs -o /boot/initramfs-2.6.32-68.img 2.6.32-68
+
+	
+********
+* GRUB *
+********
+
+update-grub		#necesario actualizar el grub2 si hemos introducido una entrada a mano
+
+*********
+* Patch *
+*********
+
+/usr/src/<kernel-version>/scripts/patch-kernel <kernel-dir>		#Este comando busca parches en el directorio actual y los aplica en <kernel-dir>
+
+<[gzip|bzip2]> -dc /path/to/patch/patch-<version>.[gz|bz2] |patch pl	#Descomprimimos el parche y lo aplicamos con "patch"
+
+<[gzip|bzip2]> -dc /path/to/patch/patch-<version>.[gz|bz2] |patch pl -R	#Revertir

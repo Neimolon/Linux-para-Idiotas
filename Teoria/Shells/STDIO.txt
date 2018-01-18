@@ -1,0 +1,53 @@
+STDIO
+
+Entrada --> STDIN  -->   0   ->   TECLADO
+Salida --> STDOUT  -->   1   ->   PANTALLA
+Error -->  STDERR  -->   2   
+
+REDIRECCIONES:
+
+<comando> | <comando>	-->Pasa la salida estandar del primer comando a la entrada del siguiente comando sin necesidad de crear un archivo intermedio
+<comando> | tee <fichero>		#duplica la salida estandar mostrandola por pantalla y enviandola a un fichero
+<comando> | tee -a <fichero>	#Añexa al final del fichero en vez de sobreescribirlo	
+
+<comando> > <ruta>    			-->Redireccion de la salida hacia el fichero <ruta>        
+<comando> >> <ruta>    			-->Anexar la salida estandar al final del fichero <ruta>        
+<comando> 2> <ruta> 			-->Redireccionado de la salida de errores al fichero <ruta>
+<comando> 2>> <ruta> 			-->Anexar la salida de errores al final del fichero <ruta>
+<comando> &>	<ruta>			-->Redireccionar la salida estandar y la error estandar al fichero <ruta>
+<comando> 2>&>1 >	<ruta>		-->Redireccionar la salida de error y la salida estandar al fichero <ruta> (igual que '&>')???
+<comando> > /dev/null 2>&1		-->Redireccionar salida standar a null y salida de errores a salida estandar
+
+<comando> < <ruta>     	-->Redirecciona el contenido del fichero <ruta> hacia la entrada del comando que le precede   
+<comando> <<	<texto>		-->Acepta el texto de las lineas siguientes como entrada estandar del comando que le precede. HEREDOC
+<comando> <> <ruta>		-->Hace que el archivo <ruta> se utilice tanto para la entrada como para la salida estandar 
+
+
+-Explicacion sobre las redirecciones a otro STDIO:
+
+	Redireccione de STD apuntando independientemente:
+		app 1>/dev/null 2>/dev/null
+
+	Redireccion de STD apuntando a otra STDOUT:
+		app 1>/dev/null 2>&1	#STDOUT -> /dev/null  &	 STDERR -> STDOUT
+		app 2>/dev/null 1>&2	#STDERR -> /dev/null  &  STDOUT	-> STDERR
+	
+	Abreviaturas:
+		"app 1> path"   ==  "app > path"
+		"1>path 2>&1"   ==  ">&path" || "&>path"
+		"2>&1 | app"    ==  "|& app"
+
+-Ejemplo HEREDOC ("<<"):
+
+$ read a << EOL
+Picha
+EOL
+
+$ echo $a
+Picha
+
+*********************
+Controles del Teclado
+*********************
+
+Ctl+D	#Ascii EOL (End of Line). Necesario en algunos programas que piden entrada de texto, sirve tambien en una cadena HEREDOC

@@ -1,0 +1,76 @@
+**********************
+* L10N/I18N & FECHAS *
+**********************
+
+
+La timezone no forma parte  de la configuracion de Localidades del sistema
+
+********
+Archivos
+********
+
+	/etc/localtime			#Binario con informazion de la hora local
+							#Este archivo tambien puede ser un link a un archivo /usr/share/zoneinfo/*
+	/usr/share/zoneinfo/*	#Coleccion de binarios con los diferentes localtimes de las regiones disponibles
+
+	/etc/timezone			#Dice la Zona horaria activa (en Debian)
+	/etc/sysconfig/clock	#Configuracion de la zona horaria (Red Hat)
+	
+	/etc/ntp.conf			#Archivo de configuracion del servicio NTp
+	
+	
+********
+Comandos
+********
+locale		#Obtiene la informacion específica local
+	-a		#All - Muestra todas las opciones locales 
+
+date
+		-d | --date <date>	#Muestra la hora descrita en el string <date>
+		-s | --set	<date>	#Fija la hora descrita en el string <date>
+		-u | --utc	[date]	#Muestra la hora UTC o la fija por la del string <date> en caso de proporcionarlo
+		+<formato>			#Caracteres de formato:
+		 %F					#Full date (%Y-%m-%d)
+		 %T					#Full time (%H:%M:%S)
+		 %Y					#Año (2017)
+		 %y					#Año (17)
+		 %m					#Mes en número (1-12)
+		 %b					#Mes texto abreviado (Ene)
+		 %B					#Mes en texto abreviado (Enero)
+		 %d					#Día en número (1-31)
+		 %a					#Día en texto abreviado (Lun)
+		 %A					#Día en texto completo (Lunes)
+		 %H					#Hora (00-23)		
+		 %I					#Hora (01-12)
+		 %M					#Minuto (00-59)
+		 %I					#Hora (01-12)
+		 %S					#Segundos (00-60)
+		 
+				
+	ntp								#servicio desincronizacion de hora, /etc/ntp.conf
+	ntpdate	<ntpserv_address>		#comando para sincronizar hora contra un servidor remoto - Servers: "<es|en|other>.pool.ntp.org"
+		-n		#Sincronización de la hora con un servidor de hora remoto
+
+	ntpq		#NTP Query Program - Por defecto: abre la consola ntpq
+		-p		#Print - Muestra lista de los pares conocidos del servidor así como su estado
+	ntptrace	#Trace a chain of NTP servers back to the primary source		
+
+	hwclock	[<funct>] [<opt>]			#Ver / Modificar el reloj hardware
+		#FUNCIONES
+		--get						#Obtiene la hora del reloj hardware (por defecto)			
+		--set <opt>					#Configura el reloj hardware con el parámetro especificado
+		--systohc <opt>				#Configura el reloj hardware desde el reloj de sistema
+		--hctosys | -s	<opt>		#COnfigura el reloj del sistema desde el reloj de hardware
+	
+		#OPCIONES
+		--localtime
+		--date="datestring>
+		--utl | -u					#Indica la escala temporal del reloj
+	
+iconv		#Convertir charset de documentos
+********************	
+Variables de entorno
+********************	
+
+	TZ 		= 	Ruta a la timezone activada
+	LANG	=	Idioma del sistema

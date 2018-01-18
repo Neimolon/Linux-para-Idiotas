@@ -1,0 +1,5 @@
+
+AuthName "Solo usuarios autorizados"
+AuthType Basic				
+require valid-user
+AuthUserFile /var/www/claves		#requiere las passwds alojadas en esta ruta (se crean con el comando htpasswd)

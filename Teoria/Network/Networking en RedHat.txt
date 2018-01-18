@@ -1,0 +1,124 @@
+
+*********************************
+* Configuracion de Red (Hat :-) *
+*********************************
+
+/etc/sysconfig									#Carpeta de configuraciones de sistema
+/etc/sysconfig/nertwork							#Configuracion general de la red (hostname aqui en CentOs <= 6)
+/etc/sysconfig/nertwork-scripts/*				#directorio en donde se encuentran los ficheros de configuracion
+/etc/sysconfig/nertwork-scripts/ifcfg-<iface>	#configuracion de red de los interfaces 
+/etc/sysconfig/nertwork-scripts/route-<iface>	#configuracion de red de las rutas de los interfaces  (normalmente cuando se usa alias)
+
+
+
+**********************************************************************************
+* OPCIONES DE CONFIGURACION DEL FICHERO GENERAL DE RED (/etc/sysconfig/nertwork) * 
+**********************************************************************************
+
+	NETWORKING=<value>, where <value> is one of the following boolean values:
+		yes — Networking should be configured.
+		no — Networking should not be configured.
+
+	HOSTNAME=<value>, where <value> should be the Fully Qualified Domain Name (FQDN), such as hostname.expample.com, but can be whatever hostname is necessary. Note: For compatibility with older software that some users may need to install, such as trn, the /etc/HOSTNAME file should contain the same value as set here.
+
+	GATEWAY=<value>, where <value> is the IP address of the network's gateway.
+
+	GATEWAYDEV=<value>, where <value> is the gateway device, such as eth0.
+
+	NISDOMAIN=<value>, where <value> is the NIS domain name.
+
+	
+*******************************************************************************************************************
+* OPCIONES DEL FICHERO DE CONFIGURACION DE LOS INTERFACES DE RED (/etc/sysconfig/nertwork-scripts/ifcfg-<iface> ) *
+*******************************************************************************************************************
+
+	BOOTPROTO=<protocol>, where <protocol> is one of the following:
+		none — No boot-time protocol should be used.
+		bootp — The BOOTP protocol should be used.
+		dhcp — The DHCP protocol should be used.
+
+	BROADCAST=<address>, where <address> is the broadcast address. This directive is deprecated.
+
+	DEVICE=<name[:1]>, where <name> is the name of the physical device (except for dynamically-allocated PPP devices where it is the logical name). Tambien se puede crear un alias para tener diferentes direcciones ips
+
+	DHCP_HOSTNAME — Only use this option if the DHCP server requires the client to specify a hostname before receiving an IP address. (The DHCP server daemon in Red Hat Enterprise Linux does not support this feature.)
+
+	DNS{1,2}=<address>, where <address> is a name server address to be placed in /etc/resolv.conf if the PEERDNS directive is set to yes.
+
+	HWADDR=<MAC-address>, where <MAC-address> is the hardware address of the Ethernet device in the form AA:BB:CC:DD:EE:FF. This directive is useful for machines with multiple NICs to ensure that the interfaces are assigned the correct device names regardless of the configured load order for each NIC's module. This directive should not be used in conjunction with MACADDR.
+
+	IPADDR[{0,1,...}]=<address>, where <address> is the IP address. [{0,1,...}] Se pueden obtener multiples IPs para un mismo interfaz
+	NETMASK[{0,1,...}]=<mask>, where <mask> is the netmask value.   [{0,1,...}] Se pueden obtener multiples IPs para un mismo interfaz
+	
+	MACADDR=<MAC-address>, where <MAC-address> is the hardware address of the Ethernet device in the form AA:BB:CC:DD:EE:FF. This directive is used to assign a MAC address to an interface, overriding the one assigned to the physical NIC. This directive should not be used in conjunction with HWADDR.
+
+	MASTER=<bond-interface>,where <bond-interface> is the channel bonding interface to which the interface the Ethernet interface is linked. This directive is used in conjunction with the SLAVE directive. Refer to Section 8.2.3 Channel Bonding Interfaces for more about channel bonding interfaces.
+
+
+	NETWORK=<address>, where <address> is the network address. This directive is deprecated.
+
+	ONBOOT=<answer>, where <answer> is one of the following:
+		yes — This device should be activated at boot-time.
+		no — This device should not be activated at boot-time.
+
+	NM_CONTROLLED=<answer>= yes,no
+	PEERDNS=<answer>, where <answer> is one of the following:
+		yes — Modify /etc/resolv.conf if the DNS directive is set. If using DHCP, then yes is the default.
+		no — Do not modify /etc/resolv.conf.
+
+	SLAVE=<bond-interface>,where <bond-interface> is one of the following:
+		yes — This device is controlled by the channel bonding interface specified in the MASTER directive.
+		no — This device is not controlled by the channel bonding interface specified in the MASTER directive.
+
+	This directive is used in conjunction with the MASTER directive. - Refer to Section 8.2.3 Channel Bonding Interfaces for more about channel bond interfaces.
+
+	SRCADDR=<address>, where <address> is the specified source IP address for outgoing packets.
+
+	USERCTL=<answer>, where <answer> is one of the following:
+		yes — Non-root users are allowed to control this device.
+		no — Non-root users are not allowed to control this device.
+
+	DOMAIN=<domain>		#el domain en resolv.conf
+
+	SEARCH=<domain>		#el search en resolv.conf
+	
+	
+		-EJEMPLO DE CONFIGURACION DHCP BÁSICO:
+			DEVICE=eth0
+			BOOTPROTO=dhcp
+			ONBOOT=yes
+
+		-EJEMPLO DE CONFIGURACION ESTÁTICA BÁSICO:
+			DEVICE=eth0
+			BOOTPROTO=none
+			ONBOOT=yes
+			NETWORK=10.0.1.0
+			NETMASK=255.255.255.0
+			IPADDR=10.0.1.27
+			USERCTL=no
+
+		
+************		
+* CentOs 6 *
+************
+	
+	setup - Herramienta de configuraicon de Red Hat
+
+	
+************
+* CentOs 7 *
+************
+
+	- por defecto usa Network Manager como gestor de red.
+	- por defecto trae desactivada la red en la configuracion de los interfaces:
+		ONBOOT=yes 		#para activarla
+	
+
+	nmcli 
+		d	#enseña los dispositivos
+		c	#conexiones que estan abiertas
+	
+	nmtui	#Herramientas de configuración de red
+
+
+	

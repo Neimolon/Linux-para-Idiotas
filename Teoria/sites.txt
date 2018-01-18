@@ -1,0 +1,18 @@
+#Documentación
+tldp.org/LDP
+http://tldp.org/guides.html
+wiki.lpi.org
+
+#Examen de certificación - Semana del 10 de Enero
+lpi.org # Conseguir el LPI ID para poder examinarse
+https://home.pearsonvue.com/ #Certificacdor global LPIC
+campus.factorhumanoformacion.com #Moodle de empresa que imparte el curso
+
+
+
+
+Explicación del ciclo de un proceso, como interactua con las señales y que señales existen. 
+https://juncotic.com/senales-y-terminacion-procesos-en-linux/
+
+Paginas de examenes
+wwwa.aiotestking.com

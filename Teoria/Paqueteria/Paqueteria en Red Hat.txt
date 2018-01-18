@@ -1,0 +1,100 @@
+*********************************
+* Gestion de Paquetes en RedHat *
+*********************************
+
+*******
+* RPM *
+*******
+ - RedHat Package Manager -
+	
+	Un paquete RPM tiene los siguientes nomenclatura:
+		Nombre-Version_Release_Arquitectura
+
+	********
+	Archivos
+	********
+	
+		/var/lib/rpm		#Base de datos con toda la información de los paquetes
+
+	********
+	Comandos
+	********
+
+rpm [opciones] <paquete>					#Redhat Package Manager
+	#Consulta y Verificación
+	-q | --query [opciones] <paquete>		#Consultas sobre los paquetes instalados, sin opciones muestra si un paquete esta instalado    
+												#Ejemplo: rmp -q net-tools
+		-a	[<paquete>]						#Query All  - Muestra la lista de todos los paquetes instalados		Ejemplo: rpm -qa
+		-l	<paquete>						#Query List - Muestra la ruta de todos los archivos relacionados con un paquete		Ejemplo: rpm -ql net-tools
+		-c	<paquete>						#Query ConfigFiles	-	Muestra las rutas de los ficheros de configuracion									
+		-i	<paquete> 						#Query Info - Muestra toda la informacion de un paquete(nombre, version,...)		Ejemplo: rpm -qi net-tools
+		-f	<ruta_archivo>					#Query File - Muestra a que paquete pertenece el archivo
+		-p	<paquete-mas-reciente?>			#Query Package - Comprueba si el paquete es mas reciente del instalado?
+			--changelog						#Muestra  los cambios que se realizaron entre las versiones de los paquetes
+	-V | --verify [opciones]				#Consultas sobre los paquetes instalados
+		-a									#All - Verifica toda la lista de paquetes instalados
+		
+	#Instalacion, actualizacion y eliminacion
+	-i | --install [opciones] <paquete>		#Instalar
+	-U | --upgrade [opciones] <paquete>		#Instala o si ya existe lo actualiza
+	-F | --freshen [opciones] <paquete>		
+	-e | --erase [opciones] <paquete>		#Eliminar
+
+	#Mantenimiento de MetaData
+	--rebuilddb								#Reconstruir la base de datos en /var/lib/rpm
+	
+	#Opciones
+	-a										#All
+	-f										#File
+	-p										#Package
+	-v										#verbose
+	--test									#yu
+	--force	<paquete>						#Actualizar paquete SOLO si una version anterior está instalada en el sistema
+ 	--oldpackage <paquete>				    #Volver a la version anterior del paquete, en combinacion con -i | -U , no lo consigo hacer funcionar					
+	-h										#progreso de la instalacion
+	--nodeps								#Instala el paquete pasando de las dependencias
+	
+
+
+*******
+* YUM *
+*******
+	*****
+	Files
+	*****
+	
+/etc/yum.conf		#fichero principal de configuracion de Yum
+	#Añadir la variable "exclude=<package>[*]" en este archivo para expluir de yum cierto tipo de paquetes
+	#Ejemplo -- exclude=php*  => excluye todo los paquetes que empiezan por php
+
+/etc/yum.repos.d	#Directorio de repositorios
+
+	********
+	Comandos
+	********
+	
+yum
+	install	<paquete>				#instalar
+	update	<paquete>				#Actualizar paquete, por defecto todos los paquetes
+	upgrade <paquete> 				#Como update, con los flags --obsolete activados 
+	check-update
+	search	<Stirng>				#Busca una cadena de caracteres que concuerde con la informacion
+	list <paquete>					#Buscar un paquete en la lista, por defecto lista todos los paquetes
+	info <paquete>					#Lista y muestra informacion adicional del paquete (Nombre,Versión,Tamaño,Repositorio,Descripción,...), por defecto lista todos
+	remove <paquete>				#eliminar paquete
+	erase <paquete>					#eliminar paquete
+	autoremove	<paquete>			#Elimina todos los paquetes instalados por el usuario que ya no sean requeridos por nadie
+	clean							#Vaciar la caché
+	downgrade <paquete>				#Baja el paquete a la version previa
+	groups							#Listar los metapaquetes del repositorio (entornos de escritorio tip GNOME o KDE ...)
+	groups list ids					#muestra metapaquetes con sus ids
+	groups list hidden				#muestra todos los metapaquetes
+	groups list hidden ids 			#muestra todos los metapaquetes con sus ids
+	repolist						#Muestra la lista de repositorios
+			-v						#Vervose, muestra informacion adicional de los repositorios
+	repoinfo						#Idéntico a repolist -v
+	
+	-y | --assumeyes				#Responde si a las preguntas
+	
+
+yumdownloader	#descargar paquetes	

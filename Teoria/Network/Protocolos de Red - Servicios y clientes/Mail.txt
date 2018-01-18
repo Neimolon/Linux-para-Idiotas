@@ -1,0 +1,179 @@
+*********************
+* Mail / MTA - Exim * 
+*********************
+
+En Debian viene por defecto el MTA "Exim". Por defecto viene configurado para enviar mails localmente entre los usuarios.
+
+********
+Archivos 
+********
+
+/var/log/mail			#
+/var/log/maillog		# hubiese cualquier problema, podemos depurar el resultado del comando "mail".
+/var/mail/usuario		# directorio de mails de cada usuario
+/etc/hostname			# Importante tener configurado correctamente el nombre de la maquina para que el servidor pueda localizarlo
+/etc/host				# Importante tener configurado correctamente para que la maquina responda con el nombre del dominio
+/etc/mailname			# En este fichero se aunan el nombre de la maquina y el dominio, 
+/etc/aliases			# Diferentes alias de las cuentas de correo, se pueden hacer redirecciones entre usuarios, listas de correo, etc.
+~/.forward				#Otra forma de usar redirecciones desde el home de cada usuario 
+
+********
+Comandos
+********
+
+
+	 
+
+	mail	#Ver/Enviar correos , se pueden enviar correos entre usuarios, de hecho por defecto solo viene configurado para usarlo entre usuarios. 
+			#Sin opciones muestra el estado de los correos
+		<user/address>		#Al añadirle un destinatario lanza un promt interactivo para intrudocir la informacion necesaria, "help" en este promt muestra las acciones
+		-v					#vervose
+		-s <subject>		#Asunto
+		-c	<user/address>	#Copia de carbon
+		-B	<user/address>	#bcc?
+
+	mutt	#gestionar buzones de correo en un entorno gráfico de linea de comandos
+	
+	mailq	#mail queue - ver la cola de mails, alias de exim4
+	
+	exiqgrep	#script de ayuda para filtrar la salida de mailq y obtener los identificadores
+		-i		#saca el identificador de los mensajes
+		-r
+
+	from <user> #Muestra una lista de los mails que <user> ha enviado a la bandeja de entrada
+
+	newaliases		#Aplica los cambios en el fichero /etc/aliases
+	
+	
+	
+**********
+SERVIDORES
+**********
+
+	**************************
+	 MTA - Mail Transport Agent
+	**************************
+
+		************************************
+		SMTP - Simple Mail Transfer Protocol
+		************************************
+		
+			-- Puertos --
+				25 : 	Default SMTP non-encrypted port
+				2525 : 	In case port 25 is filtered, non-encrypted SMTP
+				465 : 	SMTP securely
+	 
+	##--- SendMail ---##
+		mas utilizado actualmente
+		bastantes bugs
+		
+		
+		/etc/mail/access			#Configurar acciones que se realizarán dependiendo de la ip que se intente conectar 
+		/etc/mail/local-host-names	#Establecer dominios a administrar
+		/etc/mail/sendmail.cf		#Fichero de configuracion de sendmail
+		/etc/mail/sendmail.mc		#Template de configuracion - se genera sendmail.cf haciendo make a este archivo
+		
+		
+		
+	##--- PostFix ---##
+	
+	##--- qMail ---##
+		Orientado a Seguridad - recomendable para servidores abiertos a internet
+		
+	##--- Exim ---##
+
+		-- Comandos --
+		
+			exim
+				-r	<id_mail>	#elimina el mensaje de salida de la cola
+				-bP				#Volcado rápido de todos los parámetros configurados en el servidor exim
+				
+			dpkg-reconfigure exim4-config	#reconfigurar el funcionamiento de exim,
+				#Opciones.
+				# abrir a internet usando usando un servicio smtp 
+				# usar smarthost	- usar smtp externo de una cuenta ya creada como por ejemplo de gmail
+				# dejar como local
+				# Sin configuracion - Peligroso porque dejaría sin alertas de correo
+				
+			update-exim4.conf	#script que coge las rutas de los ficheros y regenera el archivo de configuración
+
+
+		-- Ficheros --
+		
+			/etc/exim4/update-exim4.conf	#relacionado con el script update-exim4.conf
+			/etc/exim4/conf.d/*		#diferentes ficheros de configuracion de exim
+			/etc/exim4/conf.d/main	#
+
+
+
+			
+	*************************
+	MDA - Mail Delivery Agent
+	*************************
+		
+		MBox: Revisar concepto
+		MailDir: Revisar concepto
+
+
+		***************************************
+		IMAP - Internet Message Access Protocol
+		***************************************
+
+			Ports:
+				143 - Default IMAP non-encrypted port
+				993 - IMAP securely
+		
+		******************************
+		POP3 - Post Office Protocol v3
+		******************************
+		
+			Ports:
+				110 : default POP3 non-encrypted port
+				995 : POP3 securely	
+
+				
+			##-- Dovecot --##
+				Máximo rendimiento y seguridad
+				
+			-- Ficheros --
+				/etc/dovecot/dovecot.conf			#Configuracion general
+				/etc/dovecot/conf.d/10-auth.conf	#Autehticacion
+				/etc/dovecot/conf.d/10-mail.conf	#???
+				/etc/dovecot/conf.d/10-ssl.conf		#SSL
+				/etc/procmailrc						#definir maildir
+				
+			-- Comandos --
+				dovecot -a		#Muestra todas las variables de configuración
+			
+			
+			
+			##-- Courier --##
+		
+		
+		
+		
+	
+	
+	*********************
+	Filtering & Anti-Spam
+	*********************
+	
+		#-- mailscanner --#
+		#-- SpamAssassin --#
+		
+		
+		
+	
+	****************
+	Listas de Correo
+	****************
+	
+	Además de poder generar las listas de correo en el fichero /etc/newaliases, existen diferentes softwares que permiten extender la funcionalidad permitiendo hacer suscripciones, etc.
+	
+		
+		#-- mailman --#
+		
+			Paquete: mailmal
+
+	
+	

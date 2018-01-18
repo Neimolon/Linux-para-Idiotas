@@ -1,0 +1,3 @@
+ALSA:
+
+alsactl #guarda y restaura la configuracion entre sesiones.

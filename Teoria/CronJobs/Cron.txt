@@ -1,0 +1,121 @@
+***********************
+
+
+
+********
+* Cron *
+********
+
+	--Cron es un demonio que se utiliza para programar ejecuciones basadas en eventos temporales. 
+
+	--Existen dos tipos de cron: 
+		-Cron de sistema: Tiene su tabla propia y se ejecuta segun la configuración del usuario root.
+		-Cron de usuario: Cada usuario tiene su tabla propia y los programas ejecutados se lanzan con los permisos del mismo. De esta forma un usuario no puede interferir con la ejecución normal del sistema. 
+		
+	
+	
+***********
+Modo de Uso
+***********	
+
+	1º crontab -e							#Para abrir la tabla del usuario logueado
+	2º Incluir regla de cron				#Formato de las reglas más abajo en este documento
+	3º systemctl reload cron.service 		#Cuando se hacen cambios muchas veces es necesario recargar el servicio
+	4º tail -f /var/log/syslog |grep cron	#Aquí podemos comprobar que está ejecutando cron [OPCIONAL - SUPUESTAMENTE NO ES NECESARIO]		
+		
+		
+********
+Comandos
+********
+
+	cron 
+
+	crontab 	#gestionar tablas de cron para usuarios individuales
+		-l		#Mostrar las tablas de cron 
+		-e		#Edit - Editar la tabla de usuarios usando el editor por defecto
+		-r		#Remove - Elimina la tabla de cron actual
+		-u 		#User - genera crontab de usuarios
+
+	
+********
+Archivos
+********
+
+	/var/spool/cron									#Directorio en el que se encuentran las tablas de los comandos basados en tiempo (at,cron)
+	/var/spool/cron/crontabs/<usuario>/crontab		#Ruta en la que se alojan las tablas creadas con el comando "crontab", es el lugar donde cron espera encontrarlas
+
+	/etc/crontab 			#Tabla maestra de cron para el sistema, aquí se suelen poner los eventos de cron. Actualmente hace llamadas a las tablas de los directorios modulares.
+	/etc/cron.d/			#Directorio en el que incluir nuestras tablas personalizadas			
+	/etc/cron.hourly/		#Directorio en el que incluir scripts que se ejecutan cada hora
+	/etc/cron.daily/		#Directorio en el que incluir scripts que se ejecutan cada dia
+	/etc/cron.weekly/		#Directorio en el que incluir scripts que se ejecutan cada semana
+	/etc/cron.monthly/		#Directorio en el que incluir scripts que se ejecutan cada mes
+	/etc/cron.allow		#No estan por defecto. Lista blanca de usuarios que pueden usar cron.Si existe allow y deny, primaría siempre el allow antes 
+	/etc/cron.deny		#No estan por defecto. Lista negra de usuarios que pueden usar cron
+
+******************
+Formato de crontab
+******************
+
+	Una entrada de crontab se compone de 5 asteriscos que preceden el comando a ejecutar:	
+
+	Ejemplo : * * * * * /bin/ejecutar/script.sh
+
+	* 				* 				* 					* 			* 					/bin/ejecutar/script.sh
+	Minutos(0-59)	Horas(0-23)		Día del Mes(1-31)	Mes(1-12)	Día de Semana(0-7)	Comando a ejecutar	
+																	Domingo = 0 y 7
+																	
+	El "*" significa que se ejecuta en cada unidad correspondiente a la columna.
+	
+	--Ejemplos:
+	
+	*	*	*	*	*	/usr/local/bin/myscript.sh --> Se ejecuta cada minuto de cada hora de cada día de mes y de cada mes, y cada día de la semana.
+	30	2	*	*	1	/usr/local/bin/myscript.sh --> Se ejecuta a las 2:30 de cada día del mes de cada mes sólo si es Lunes
+	
+	--Intervalos de tiempo
+	30	2	*	*	1-5	/usr/local/bin/myscript.sh --> Se ejecuta a las 2:30 de cada día del mes de cada mes de Lunes a Viernes
+
+	0,10,20,30,40,50	2	*	*	1-5	/bin/ejecutar/script.sh --> Ejecutar un script a las 2:00,2:10,2:20,2:30,2:40,2:50, todos los dias de todos los meses de Lunes a Viernes
+
+	*/5	2	*	*	1	/usr/local/bin/myscript.sh --> Se ejecuta script.sh los Lunes de cada día de cada mes durante las 2 de la mañana a intervalos de 5 minutos
+	
+	--Palabras reservadas:
+		Existen palabras reservadas que representan reglas usadas comunmente, las reglas asociadas a las palabras pueden ser configuradas.
+		
+    @reboot: se ejecuta una única vez al inicio.
+    
+	@yearly/@annually: ejecutar cada año.
+    
+	@monthly: ejecutar una vez al mes.
+    
+	@weekly: una vez a la semana.
+    
+	@daily/@midnight: una vez al día.
+    
+	@hourly: cada hora.
+
+		-Ejemplo: @hourly /bin/ejecutar/script.sh
+
+
+		
+******************
+* AT y Variantes *
+******************
+
+Programas diseñados para la ejecución postergada de procesos
+
+	at [<hora>] [<fecha>]		#Abre la consola "at", en la que se le pasan los comando a ejecutar a la hora <time> el día <fecha>. 
+								#Para cerrar la consola at se pulsa Ctrl +D que envia un <EOT> y retorna a la consola por defecto
+								#"at" ejecuta las instruccione en una shell "sh"
+		-f <file>				#Ejecuta el archivo en vez de STDIN
+		
+	atq							#AT Query - COnsultar la cola de tareas programadas en at
+
+	atrm <atq_id>				#AT ReMove	- Permite eliminar de la cola alguna tarea programada. Se le pasa el identificador de la cola
+
+	
+	/etc/at.allow				#Lista blanca de usuarios "at"
+	/etc/at.deny				#Lista negra de usuarios "at"
+	
+	batch						#Abre una consola de at, y funciona de forma parecida
+								#Se Ejecuta en funcion de la carga del sistema y no de una hora (>1.5% o el valor especificado en atd)

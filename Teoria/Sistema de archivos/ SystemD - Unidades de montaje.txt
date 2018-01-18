@@ -1,0 +1,36 @@
+***********************************************
+* Creacion de unidades de montaje con SystemD *
+***********************************************
+
+1 - Ir al directorio /etc/systemd/system	#Directorio de Unidades customizadas por usuario de systemd
+
+2 - Creamos el archivo correspondiente a la unidad
+		--> Nomenclatura:
+				El archivo de la unidad tiene que llamarse como la ruta en la que se va a montar, separado por guiones y . ".mount" al final. Esto es OBLIGATORIO
+		
+						RUTA MONTAJE	==> 		FILENAME 
+					/mnt/backups/server ==>	mnt-backups-server.mount
+
+3 - Editamos el archivo y le metemos la configuración de las units
+
+		[Unit]
+			Description = test mount
+		[Mount]
+			What =/dev/sdb1
+			#What =/dev/disk/by-uuid/b819c37a-f0a9-4959-9e2b-fdde26fef111
+			Where = /test
+			Type = ext3
+			Options = defaults
+		[Install]
+			WantedBy = multi-user.target
+			
+4 - Cargar la unidad
+	- Si deseamos cargar inmediatamente la unidad, podemos hacer lo siguiente:
+		# systemctl daemon-reload
+		# systemctl start test.mount
+		# systemctl stop test.mount
+		# systemctl status test.mount
+	
+	- Hacer persistente:
+		# systemd enable test.mount
+	

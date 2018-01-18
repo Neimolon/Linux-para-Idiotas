@@ -1,0 +1,9 @@
+210.2
+
+************
+* Ficheros *
+************
+
+/etc/pam.conf	#Primeras versiones de PAM tenían su configuración en el archivo 
+Actualmente utilizan un directorio /etc/pam.d que contiene tantos archivos como aplicaciones que usan PAM.
+•Si existe el directorio /etc/pam.d, el archivo /etc/pam.conf no se consultará.

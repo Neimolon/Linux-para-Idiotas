@@ -1,0 +1,29 @@
+###PATHS
+
+PATH			#Ruta en la que la shell va a buscar los comandos lanzados que no forman parte de sus comandos internos.
+	-Formato: "<ruta>:<ruta>"
+	-Ejemplo: "/opt/lampp/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games"
+
+HISTFILE		#Define en que archivo se guarda el historial de comandos de un usuario
+
+
+
+### INTERNACIONALIZACION
+
+ALL_MESSAGE
+LC_MESSAGES		#Cambiar el idioma de los mensajes de un programa preparado para la internacionalizacion
+	-Formato:	"iso_lang_code"
+	-Ejemplo:	"pt"
+
+LANG			#Cambiar el idioma de los mensajes de un programa preparado para la internacionalizacion
+	-Formato:	"iso_lang_code"
+	-Ejemplo:	"pt"
+
+TZ= Configura el Time Zone para los comandos lanzados en ese entorno
+	
+	
+###X SERVER	
+
+DISPLAY
+	-Formato: "hostname:displaynumber"
+	-Ejemplo: ":0.0"

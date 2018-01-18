@@ -1,0 +1,43 @@
+*********************
+* Archivos en samba *
+*********************
+	
+	*************************
+	Archivos de Configuración
+	*************************
+	
+	/etc/samba/smb.cfg			#Fichero de configuración de samba. Se divide en secciones estandarizadas, cada una precedida por un titulo entre corchetes:
+		Ejemplo:
+			[seccion1]
+			parametro1 = valor1
+			parametro2 = valor2
+			...
+	
+	/var/lib/samba/*				#Archivos de mapeo de usuarios y contraseñas en BD de formato TDB (en Debian)
+	/var/lib/samba/private/			#Archivos de mapeo de usuarios y contraseñas en BD de formato TDB (en Red Hat)
+
+	
+	
+	/etc/samba/smbusers			#!!!Deprecated por formato TDB!!!- Directorio de mapeo de usuarios samba con usuarios unix
+		Ejemplo:
+			<unix_user> = <smbuser1> [<smbuser2> <...>]
+			root = administrator admin
+			nobody = guest smbguest
+
+
+			
+	******		
+	Loggin
+	******
+
+	/var/log/samba/log.nmbd			#Log de acciones del demonio nmbd
+	/var/log/samba/log.smbd			#Log de acciones del demonio smbd
+
+
+	*************
+	Documentacion
+	*************
+
+		/usr/share/doc/samba
+		/usr/share/samba
+		

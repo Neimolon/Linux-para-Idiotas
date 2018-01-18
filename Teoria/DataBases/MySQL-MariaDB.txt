@@ -1,0 +1,17 @@
+*********
+* MySQL *
+*********
+
+ - Puerto: 
+	3306
+
+ - Comandos: 
+	mysql
+		-u <usuario> #
+		-p	#pregunta por la pass del usuario 
+	
+- Archivos:
+	/var/lib/mysql		#Aqui se guardan todas las bases de datos. 
+
+	
+	

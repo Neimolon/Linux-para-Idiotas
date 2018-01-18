@@ -1,0 +1,40 @@
+**************	
+* Kernel FSH *
+**************	
+
+/vmlinuz-<kernel-version>			#Enlace al archivo principal del kernel
+
+/boot/config-<kernel-version>		#Configuracion del kernel ya instalado (para copiar a /usr/source/<kern-ver>/.config)
+/boot/vmlinuz-<kernel-version>		#Archivo principal del kernel (comprimido y compilacion personalizada por la distro)
+/boot/initrd.img-<kernel-version>	#Ramdisk para montar la raiz de cada version del kernel
+/boot/System.map					#Enlace simbólico al archivo System.map del kernel correspondiente
+/boot/System.map-<kernel-version>	#Indicadores a funciones en el kernel y usado para depuracion de problemas
+/boot/grub/grub.cfg					#Configuracion maestra de grub 2 (se genera con update-grub)
+/boot/grub/[menu.lst|grub.cfg]		#Configuracion maestra de grub legacy 
+
+
+/usr/src/linux										#Enlace simbólico que debe apuntar al directorio del kernel actual
+/usr/src/<kernel-version>/*							#Directorio por defecto para las fuentes de código
+/usr/src/linux/arch/<arch>/boot/bzImage				#Kernel compilado sin modulos <arch> = x86(32 bits), x86_64(64 bits)
+/usr/src/<kernel-version>/Documentation				#Directorio de la documentacion
+/usr/src/<kernel-version>/README					#Documentacion, vision general del kernel
+/usr/src/<kernel-version>/Documentation/00-INDEX	#Contenido de archivos y directorios de Documentacion
+
+
+/lib/modules/<kernel-version>/*		#Directorio para los módulos del kernel (.ko)
+
+/etc/grub.d/*						#Scripts modulares del grub (fuentes para update-grub)
+/etc/modules.conf					#Permite configurar los módulos y definir asociaciones entre módulos y dispositivos.
+									#Ejemplo:
+										##Asociación forzada del controlador tg3 con la tarjeta de red
+										#alias eth0 tg3
+/etc/sysctl.conf					#Configurar parametros del kernel de forma persistente
+
+/etc/udev/udev.conf					#Configuracion del servicio udev
+/etc/udev/rules.d/*					#Directorio donde se almacenan las reglas de udev
+									#Ejemplo: SUBSYSTEM=="net", ACTION=="ADD", DRIVERS="?*", ATTR{address}=="00:21:86:9e:c2:c4", ATTR{type}=="1", KERNEL="eth*", NAME=="eth0" --> Esta regla de da al dispositivo con la mac 00:... el nombre eth0 cuando lo detecte.
+
+									
+/var/log/dmesg						#Log del mensajes del kernel
+
+

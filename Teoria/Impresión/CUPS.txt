@@ -1,0 +1,103 @@
+***************************************
+* CUPS -  Common Unix Printing System *
+***************************************
+
+Sistema de gestion de impresoras.
+
+Package: cups
+
+******
+Files:
+******
+	/etc/cups/cupsd.conf	
+	/etc/cups/ppd						#print drivers folder
+	/etc/cups/ppd/printers.conf			#archivo de configuraion de la impresora, se genera cuando se instalan impresoras
+	/etc/printcap						#Definicion de la cola de impresión.
+	/var/spool/cups						#cola de impresion CUPS
+	/var/spool/lpd						#cola de impresion LPR
+	
+	
+	--Control a través de navegador:
+	
+		Cups tiene un sistema de gestión que se puede controlar a traves del navegador y está diseñado para ser utilizado en entorno de red.
+		
+		Para acceder: http://<host>:631
+		
+		### Configuracion en cupds.conf - Para acceder desde fuera de localhost
+		
+		Listen localhost:631			#Configuracion del puerto de escucha, lo cambiamos a "Port 631" si queremos que esté abierto a toda la red 
+		Browsing [On/off] 				#permite a otros equipos de la red conectarse
+		DefaultAuthType [Basic/None/?]	#Tipo de autenticacion de los usuarios que se conecten a la red
+		WebInterface [Yes/No]			
+		
+		#Restringir el acceso al servido, muy parecido a las reglas del htaccess
+		<location /admin>
+			Order allow,deny
+			Allow all
+		</location>
+		
+		Es posible que pese a todos estos ajustes siga sin funcionar correctamente. Existe una opcion del comando cupsctl que permite abrir el gestor de configuracion a toda la red:
+			cupsctl --remote-admin
+		
+		Una vez bien configurado es posible acceder a través de un navegador <ip>:631 al sistema de gestion de CUPS
+	
+********		
+Comandos
+********
+	
+	****
+	CUPS
+	****
+	
+	lp <file> 					#Print Files
+		-d <Printer> <file>		#Destination - Impresora donde se imprimirá el documento
+		
+	lpstat								#Estado de las colas de impresion
+		-a
+		-d
+	
+	lpinfo								#Muestra informacion de 
+		-v
+
+	cupsenable / cupsdisable					#Inicar / Parar impresoras y clases
+		-c										#Cancel todos los trabajos del servidor destino
+		-h <server>[:<port>]					#Cambiar el servidor de impresoras
+		-r "reason"								#Configura el string asociado al estafo detenido
+		
+	cupsaccept / cupsreject	<destino>			#Aceptar / Rechazar trabajos enviados a un destino
+		-r "reason"								#Configura el string de motivo que muestra la impresora que está rechazando el trabajo
+	
+	cupsctl					#Programa para generar archivos de configuracion cupsd.conf
+		--remote-admin		#Permitir acceso remoto a CUPS y al gestor web
+		--no-remote-admin	#Denegar acceso remoto a CUPS al administrador web
+		
+	***
+	LPR 
+	***
+	
+	LPR es un paquete de software usado antes de CUPS, sus funciones de impresión aún se conservan haciendo un uso Legacy
+	
+	lpr <file>							#imprimir documento en la impresora por defecto
+		-P<PrinterName> <file>  		#usar la impreosra seleccionada
+		-l | -o raw						#Saltarse lo filtros de impresion
+		-r	<file>						#Imprimir archivo y luego borrarlo
+		-#<n>							#Numero de copias
+		
+	lpq									#Mostrar la cola de impresion
+		-P<PrinterName> <file>  		#usar la impreosra seleccionada
+		-l								#Información extendida de la cola, "Vervose"
+	
+	lprm <id_tabajo_cola_impresion>		#aliminar una impresion de la cola de impresion
+		-P<PrinterName> <file>  		#usar la impreosra seleccionada
+	    - 								#Elimina todos los trabajos de la cola de impreison
+	
+	lpadmin								#Definir impresoras nuevas
+	lpmove								#Mueve trabajos de una cola de impresion a otra
+	
+	lpd			#Configurar cups?
+	Misc:
+	
+	foomatic		#drivers de impresoras
+	
+	ghostscrypt		#Ghostscript permite presentar datos PS(Post Script) y PDF en la pantalla y además traducirlos de manera que puedan ser impresos en una impresora con capacidad gráfica mediante el uso del controlador de dicha impresora.
+	

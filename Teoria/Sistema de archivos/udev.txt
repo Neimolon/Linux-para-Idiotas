@@ -1,0 +1,106 @@
+************ 
+* HAL/UDEV *
+************ 
+
+	- A bajo nivel, una utilidad debe vigilar los cambios en el hardware (inserciones de discos...) y notificar esos cambios a otros programas. 
+	
+		-> HAL (Hardware Abstraction Layer) es el software que tradicionalmente se a encargado de estas tareas.
+		
+		-> UDEV aparece en 2009 para proporcionar una mejor gestion de dispositivos,  
+			- Es el encargado de los archivos del directorio /dev/ que permite acceso en bruto al hardware del ordenador, 
+		
+			- Nomenclatura:
+				/dev/sd[X]			#Disco de almacenamiento SATA, [X] es una letra que se corresponde con cada disco
+				/dev/sd[X][n]		#Particion en disco SATA, [n] el el numero de la particion
+				/dev/fd[n]			#Disqueteras
+				/dev/sr[n]			#lectores opticos
+				/dev/ht[n]			#Dispositivos de cinta ATAPI con rebobinado despues de cada operacion
+				/dev/st[n]			#Dispositivos de cinta SCSI con rebobinado despues de cada operacion
+				/dev/nst[n]			#Dispositivos de cinta SCSI sin rebobinado
+				/dev/lp[n]			#Puertos paralelos
+				/dev/usb/lp[n]		#Impresoras USB
+				/dev/ttyS[n]		#Puerto serie RS-232
+				/dev/pts/#			#Pseudoterminales (acceso remoto, terminal X,...)
+				/dev/bus/usb/*		#Acceso a dispositivos usb
+				/dev/snd/*			#Dispositivos de sonido
+				/dev/input/*		#Dispositivos de entrada para humanos (principalmente raton)
+				/dev/zero			#Genera una secuencia interminable de ceros
+				/dev/random			#Genera una secuencia interminable de numeros aleatorios
+				/dev/null			#Dispositivo de escritura que no esta conectado a nada
+				
+			- La mayoria de los dispositivos en "dev" son dispositivos de caracteres (permiten R/W) de un caracter(bit) a la vez, tambien tiene dispositivos de bloque, que permite la R/W de bloques de bits (512 normalmente) y suelen ser discos duros.
+				
+			- Los ficheros en /dev tienen propietarios, grupos y permisos. Por norma general los usurios corrientes no deben tener acceso, aunque puede haber excepciones.
+			
+			-Operadores en reglas de UDEV:
+				==		# Comparacion de igualdad
+				!=		# Comparacion de diferencia
+				=		#Asignacion de valor a clave
+				:=		#Asignacion de valor a clave evitando futuras asignaciones
+				+=		#Concatenaion de valor a clave
+			
+			-Wildcards: Se pueden utilizar wildcars a modo de expresiones regulares
+				*		#Correspondencia con cualquier secuencia
+				?		#Correspondencia con caracter
+				[abc]	#Correspondecia con caracter a,b o c
+				
+			Claves para las reglas UDEV:
+			
+				#Clave			#Tipo			#Descripcion
+				LABEL			Control			Nombre establecido para administrar un flujo de correspondencias dentro de un archivo de reglas
+				GOTO			Control			Redirigir flujo de operaciones de correspondencia dentro de un archivo de reglas
+				WAIT_FOR		Control			Detiene la correspondecia hasta que se crea un archivo especificado
+				ACTION			Correspond.		Nombre de la accion a realizar (add)
+				KERNEL			Correspond.		Nombre del kernel para el dispositivo (sd* para SCSI)
+				DEVPATH			Correspond.		Ruta del dispositivo del kernel (/devices/*.)
+				SUBSYSTEM		Correspond.		Nombre del kernel para el subsistema del dispositivo (sound,net, ...)
+				DRIVER			Correspond.		Nombre del driver de dispositivo
+				PROGRAM			Correspond.		Ejecuta un programa externo (se considera cierta si el programa devuelve 0)
+				RESULT			Correspond. 	Salida estandar de la llamada PROGRAM
+				ATTR{string}	Corre/Asig		Nombre arbitrario que puede establecerse para el dispositivo
+				NAME			Asignacion		Nombre de un archivo de dispositivo que se creará en /dev. 
+				SYMLINK			Asignacion		Nombre del vinculo simbólico que se va a crear en /dev/
+				OWNER			Asignacion		Propietario del archivo del dispositivo
+				GROUP			Asignacion		Grupodel archivo del dispositivo
+				MODE			Asignacion		Permisos del archivo de dispositivo
+				RUN				Asignacion		Nombre de un programa externo a ser ejecutado (por defecto en /lib/udev)
+				OPTIONS			Asignacion		Establecer opciones especificas del dispositivo
+				
+				*Muchas de estas claves se pueden convertir en formas plurales SUBSYSTEM => SUBSYSTEMS para buscar en multiples capas de la ruta del arbol de dispositivos
+			
+	
+	- En un nivel superior otras aplicaciones (administrador de archivos...) reciben los mensajes relacionados con los cambios y pueden actuar en consecuencia a la configuracion que tengan para manejar tales eventos (Si se detecta sistema de archivos -> montar el sistema de archivos)
+	
+******************	
+EJEMPLOS DE REGLAS
+******************	
+		
+		
+/etc/udev/rules.d/75-iscsi.rules
+	#The iscsi device rules.
+	#This will create an iscsi device for each of the targets.
+	KERNEL=="sd*", SUBSYSTEM=="block", \
+	PROGRAM="/usr/lib/udev/scsi_id --whitelisted --replace-whitespace /dev/$name", \ RESULT=="3600601607db11e0013ab5a8e371ce111", \
+	NAME="isda"
+
+		
+		
+********
+Ficheros
+********
+	/dev/*							#Directorio de dispositivos hardware
+	/etc/hal						#Archivos de configuración de HAL
+	/etc/udev/rules.d/				#Direcotrio de configuracion de las reglas UDEV
+	/etc/udev/rules.d/nn-descript	#Ficheros de las reglas UDEV. <nn> es un numero que corresponde con el orden de ejecucion
+									#<descript> es una descripcion del servicio
+									#Para generar reglas se necesita saber los nombres de los atributos ==> comando udevadm
+		
+	/lib/udev						#Ruta por defecto donde udev busca programas externos
+									
+									
+********
+Comandos
+********
+
+udevadm	[options] <device>		#Comando para administrar UDEV
+	info						#Muestra informacion de 

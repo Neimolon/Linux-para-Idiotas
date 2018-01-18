@@ -1,0 +1,75 @@
+Gestion de usuarios y grupos(107.1)
+
+UID :User IDentifier
+GID :Group Identifier
+
+Es usuario mas importante es root con UIS y GID = 0 
+
+/etc/passwd		#Contiene la informacion de los usuarios - 7 campos(nombre,pass,uid,gid,comentario,home,shell)
+/etc/shadow		#guarda las passwords de los usuarios
+/etc/group		#Informacion de los grupos del sistema.
+		### -Ejemplo linea fichero "/etc/group" -###
+		#	<Nombre>	:	<?>	:	<ID>	:	<usuario1>,<usuario2>,...
+		#	finance		:	x	:	503		:	john,stewart,fred
+		finance:x:503:john,stewart,fred
+
+/etc/login.defs	#se reservan 1000 UID para usuarios del sistema
+/etc/skel		#configuracion por defecto de skeletons, un directorio con los ficheros de configuracion que van en el home de cada usuario(.profile,.bash_rc,.bash_logout)
+/etc/adduser.conf	#configuracion por defecto para el programa adduser
+/etc/group			#configuracion de los grupos de sistema
+/etc/gshadow		#passwords de los grupos
+/etc/nologin
+/etc/default/useradd		#Opciones por defecto para el comando useradd
+
+********
+Comandos
+********
+
+id <nombre_usuario>		#muestras los ids y nombres de los usuarios y grupos, por defecto el usuario logueado.
+
+useradd	<nombre_usuario>	#el comando base
+	-c 	#comment
+	-d	#home-dir
+	-e	#expire-date
+	-f 	#inactive-days
+	-g	#grupo por defecto
+	-p	#password
+	-s	#shell
+	-k  #skeleton
+	-m	#crear home
+
+userdel [opciones] <nombre_usuario>
+	-r | --remove		#elimina todo el contenido (home, pool de correo, grupos)
+		| --force		#Forzar la eliminacion	
+		
+adduser	<nombre_usuario>	#script que pregunta interactivamente, utiliza useradd 
+
+deluser	<nombre_usuario>
+
+passwd <nombre_usuario>		#cambiar la password a un usuario
+
+usermod				#modificar configuracion de las cuentas de usuario
+	-L <usuario>	#Lock - BLoquear la cuenta del usuario.		
+chage		#change age, permite modificar ajustes relacionados con la caducidad
+
+groups		#muestra los grupos ?
+
+groupadd [opciones] <nombre_grupo>	#añadir grupo
+
+groupmod [opciones] <nombre_grupo>	#modificar 
+
+groupdel
+
+addgroup
+
+delgroup
+
+ulimit		#Poner limites a a los recursos usados por cada usuario (obsoleto?)
+ 
+ 
+************
+Curiosidades
+************
+poniendo como home "dev/null" todo lo que genera un usuario se va al gran agujero negro
+poniendo como shell "bin/false"	no permites a los usuarios usar la shell
+los grupos del sistema tienen un uid reservado, no tienen shell ni home, suelen usarse para servicios y daemons

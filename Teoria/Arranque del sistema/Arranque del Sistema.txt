@@ -1,0 +1,262 @@
+************************
+* Arranque del sistema *
+************************
+
+
+	******************
+	Pasos del Arranque
+	******************
+
+	Podemos diferenciar el arranque en 3 grandes bloques: BIOS, BOOTLOADER y KERNEL.
+
+					BIOS(Firmware) -->  Bootloader(GRUB/LILO) --> Kernel(SYSTEMV/SYSTEMD)
+
+					
+		1º - Se manda la señal de encendido a la placa y se inicia la CPU
+
+		2º - La CPU examina una direccion de memoria concreta que apunta a un chip EEPROM y es el que se encuentra el firmware de la placa. Un sistema operativo independiente muy básico que permite controlar los dispositivos de hardware que le da instrucciones a la CPU de como proceder según la configuración guardada*.
+
+			*El firmware permite lanzar un menú de configuración en el que personalizar y guardar diferentes opciones. Entre las mas importantes esta definirel disco de arranque del que se leerá la MBR en donde se halla el código del Bootloader.
+
+
+		3º - El Firmware inicia los subsistemas de hardware principales, realiza comprobaciones de hardware memoria, etc.( Hace un POST??)
+
+		4º - Si no hay errores el firmware dirige el ordenador hacia el cargador de arranque (Bootloader) de primera etapa que se encuentra en la MBR del dispositivo de arranque. 
+					
+		5º - El codigo de arranque de primera etapa (MBR) puede arrancar mas etapas de si mismo (/boot/) para ofrecer un arranque más avanzado. En última instancia se encarga de procesar el kernel y ejecutarlo. A partir de ese momento es el Kernel es que toma el control del sistema.
+		
+			Es muy común que los bootloaders ofrezcan un menú en el que se pueden seleccionar diferentes modos de arrancar el kernel, seleccionar entre diferentes versiones de kernel e incluso diferentes sistemas operativos.
+			
+			También ofrecen herramientas de ecicion de la configuración en caliente y un emulador de comandos. Se puede proteger el arranque con contraseña o conseguir acceso root en caso de necesitar una recuperacion del sistema en el bootloader.
+			
+		6º - El arranque del kernel (llamado "process 0" o "swapper" ) empieza con la inicializacion y configuración de la memoria del ordenador y diferente hardware acomplado al sistema (procesador, subsistemas de I/O y dispositivos de almacenamiento, capacidades de coma flotante...)
+		
+		7º - (initrd) Se localiza el ramdisk, se descomprime y se monta como sistema de archivos temporal. Se lanza el proceso "init" del ramdisk (PID 1) y la tarea "idle", se cargan todos los drivers necesarios (SATA,LVM, RAID, ...) que puedan ser necesarios para la generacion del sistema de archivos raiz. Se carga el sistema de archivos raiz como solo lectura, se desmonta el sistema de archivos temporal y se reclama la memoria que ocupa.
+
+		8º - Entra en accion el proceso "init" o "systemd" (PID1) alojado en /sbin/ , se monta el sistema en modo operacional y el scheduler entra en acción y se continua con la preparacion del espacio para el usuario, se mira en el inittab o en los targets de SystemD y se cargan los runlevels según lo especificado en la configuración (initrc?)
+		
+ 
+	******************
+	Firmware: BIOS/EFI
+	******************
+
+		
+	Actualmente existen 2 tipos de Firmware que controlan las placas base:
+		- BIOS: Basic Input Output System
+		- EFI : Extensible Firmware Interface
+
+
+			
+	**********		
+	BOOTLOADER		
+	**********		
+				
+	Reside en el MBR y puede extenderse al sistema de archivos raiz o a una particion propia, normalmente en el directorio /root/
+	
+	El BOOTLOADER en sistemas basados en Linux suele ser GRUB Legacy, GRUB 2 o LILO. 
+ 
+		****
+		LILO
+		****
+
+		Se instala con el comando "lilo"
+		
+		***********
+		GRUB Legacy
+		***********
+		
+		- Grub define su propia particion raiz
+		
+		-Nomenclatura para los discos: 
+			las particiones empiezan en 0 y se colocan entre parentesos:
+				discos         particiones
+				hd0            (hd0,1) | (hd0,msdos1)
+	
+		- No es necesario actualizarlo si se hacen modificaciones
+		
+		- Comandos:
+			grub-install <disco> 						#Instalar el grub en <disco>	
+					--root-directory="<path>" <disco>	#Instalar el grub en <disco> en path "/custom-grub/boot/grub"
+				
+		-Archivos: 
+			/boot/grub/devices.map 					#Mapa con las asociaciones de dispositivos
+			/boot/grub/[menu.lst|grub.conf] 		#Archivo de configuracion de GRUB Legacy
+
+				######### EJEMPLO DE MENU.LST | GRUB.CONF ##########
+				
+				#Opciones globales:
+				default=0											#Entrada por defecto
+				timeout=5											#Tiempo de espera
+				splashimage=/grub/bootimage.xpm.gz					#Imágen de fondo
+
+				#Opciones de cada imágen de Kernel
+				title  Arch Linux Stock Kernel						# "stanza" de cada imagen de kernel, se le proporciona nombre que mostrar en el menu
+					root   (hd0,0)									# Raiz de GRUB, define donde se encuentra "/boot"
+					kernel /vmlinuz-linux root=/dev/sda2 ro			# Ubicacion del kernel y opciones que se le pasan
+					initrd /initramfs-linux.img						# Localizacion del RamDisk
+
+				title  Arch Linux Stock Kernel Fallback
+					root   (hd0,0)
+					kernel (hd 0,0) /vmlinuz-linux root=/dev/sda2 ro	# La ruta es relativa a root pero se le pueden pasar otras localizaciones si hace falta.
+					initrd /initramfs-linux-fallback.img
+
+				#Otros sistemas operativos
+				title Windows
+					rootnoverify (hd0,1)							#Cargar kernel de otro sistema operativo y definir localizacion
+					chainloader +1									#Pasar el control a otro bootloader en el sector (+1) de la particion especificada previamente
+					
+				##################################################
+
+		- Recuperan de sistema a través de GRUB :
+			- Arrancar un bash como root desde grub :
+				Al final de la linea de opcion de linux en el edito de configuracion en vivo del grub cambiar:
+					"ro quiet" por "rw single"
+
+		*Para cargar otros sistemas como Windows se llama el chainloader ya que GRUB no puede cargarlo por si mismo
+
+		*****
+		GRUB2
+		*****
+
+		- Las particiones empiezan en 1: hd(0,1)
+
+
+		- Comandos:
+			grub-install <disco>   #Instalar grub2 - En el MBR del <disco> (/dev/sda) 
+			update-grub				#Actualizar el grub despues de modificar la configuracion. (genera un nuevo fichero grub.cfg)
+			update-grub2			#Alias de update-grub?
+			grub-mkconfig			#Alias de update-grub
+
+		- Archivos:
+		
+			/boot/grub/grub.cfg		#ya no se modifica en este fichero, sino los scripts modulares que lo componen
+			/etc/grub.d/*			#Plantillas que componen grubcfg
+			/etc/default/grub		#Settings que componen grub.cfg, aquí van las modificaciones del usuario
+
+			######################### EJEMPLO DE GRUB.CFG ##############################	
+			
+			#Opciones Generales:
+			set default='0'; 															# Entrada de grub por defecto
+			if [ x"$default" = xsaved ]; then load_env; set default="$saved_entry"; fi	# Se permiten expresiones condicionales!!
+			set timeout=5																# Tiempo de espera
+
+			#Opciones sobre imagenes de kernel
+			menuentry 'Arch Linux Stock Kernel' {										#"stanza" de la entrada, iniciada con menuentry y delimitada por llaves.
+			  set root='(hd0,1)'; 														#Localizacion del root del grub
+			  linux /vmlinuz-2.6.32 ro root=/dev/hda5 mem=2048							#Localizacion del kernel y opciones 
+			  linuxrd /initrd-2.6.32 													#Localizacion del RamDisk
+			  
+			}
+
+			menuentry 'Arch Linux Stock Kernel Fallback' {
+			  set root='(hd0,1)'; set legacy_hdbias='0'										#Configuracion más esoterica
+			  legacy_kernel   '/vmlinuz-linux' '/vmlinuz-linux' 'root=/dev/sda2' 'ro'		#Configuracion más esoterica
+			  legacy_initrd '/initramfs-linux-fallback.img' '/initramfs-linux-fallback.img' #Configuracion más esoterica
+			}
+			
+			#Otros sistemas operativos
+			menuentry "Windows" {		
+				set root=(hd0,2)														#ya no se usa rootnotverify para otros S.O.
+				chainloader +1
+			}
+			##############################################################################
+			
+			##################### EJEMPLO DE /ETC/DEFAULT/GRUB############################	
+			GRUB_DEFAULT= 0/saved 								#con 0 hacemos que se seleccione por defecto la primera entrada, con la opción 1, la segunda...
+																#Con la opción saved, hacemos que siempre seleccione la última entrada que se ejecutó.
+			
+			GRUB_TIMEOUT=10 									#le ponemos el tiempo de espera hasta ejecutar la entrada que tenemos puesta como default.
+			
+			GRUB_HIDDEN_TIMEOUT=0 								#esconde el menú de entradas del grub, si le ponemos un tiempo mas alto lo que hace es esconder el menú, pero esperarse un tiempo hasta continuar. 
+			
+			GRUB_HIDDEN_MENU_QUIET=true/false 					#si está a "true" oculta la cuenta atrás, mientras que si está a "false" muestra la cuenta atrás.
+			
+			GRUB_DISTRIBUTOR=lsb_release -i -s 2> /dev/null || echo Debian 			#determina el nombre de la entrada del menú.
+			
+			GRUB_CMDLINE_LINUX="opciones"						#similar al altoptions del antiguo grub.
+			
+			GRUB_CMDLINE_LINUX_DEFAULT="quiet splash" quiet 	#sirve para agrupar las entradas iguales, mientras que splash sirve para que nos muestre la imagen de carga en vez de los mensajes del kernel
+			
+			GRUB_GFXMODE=640x480 								#La línea activa el grub gráfico. 
+																#Mediante el comando vbeinfo escrito en la linea de comandos del grub vemos las posibilidades.
+
+			#GRUB_DISABLE_LINUX_RECOVERY="true" 				#Descomenta esta línea para que no aparezca la opción de recovery mode en el menú
+			##############################################################################
+	
+		- Recuperan de sistema a través de GRUB :
+			- Arrancar un bash como root desde grub :
+				
+				Al final de la linea de opcion de linux en el edito de configuracion en vivo del grub cambiar:
+					ro quiet" por "rw init=bin/bash", 
+				
+
+	
+		- Proteger el grub por contraseña
+	
+
+			1º - Generar la contraseña
+				
+				grub-md5-crypt 		#Pide una password y te da un md5 que hay que poner en /boot/geub/grub.conf
+					Password:
+					Retype password:
+					$1$4TX1I0$Fy9fC5OKhyhYjmN5Na9wN.
+
+			2º - Añadimos la contraseña creada al archivo "/boot/grub/grub.conf":
+
+				### Fichero "/boot/grub/grub.conf" con password ###
+				
+					default=0
+					timeout=5
+					password --md5 $1$fZoEm1$q5beLsxJzOhQwhV6VFEfP1 		#<-- Protegemos la edición linux single
+					splashimage=(hd0,0)/grub/splash.xpm.gz
+					hiddenmenu
+					
+					title CentOS (2.6.32-431.el6.i686)
+						password --md5 $1$fZoEm1$q5beLsxJzOhQwhV6VFEfP1 	#<-- Protegemos la entrada al sistema
+						root (hd0,0)
+						kernel /vmlinuz-2.6.32-431.el6.i686 ro root=/dev/mapper/vg_trasgu-lv_root
+						rd_LVM_LV=vg_trasgu/lv_swap KEYBOARDTYPE=pc KEYTABLE=es rd_NO_MD rd_NO_LUKS
+						SYSFONT=latarcyrheb-sun16 crashkernel=auto LANG=es_ES.UTF-8 rd_LVM_LV=vg_trasgu/lv_root
+						rd_NO_DM rhgb quiet
+						initrd /initramfs-2.6.32-431.el6.i686.img
+
+				####################################################
+
+			[3º] - Si hemos puesto contraseña al Modo Single 
+		
+				Dependiendo de la distrubución el arranque del sistema en modo "single" puede requerir contraseña o no. Para asegurarse de que pida contraseña
+		
+				Tanto en CentOS como RedHat, viene por defecto este valor al final del archivo /etc/sysconfig/init:
+					#SINGLE=/sbin/sushell	#sushell lanza una shell de root sin pedir de constraseña - comentamos esta endrada
+					SINGLE=/sbin/sulogin	#Aqui se define la consola del modo "single" por una consola que pide contraseña de root
+		
+		*****************
+		Otros BootLoaders
+		*****************
+		
+		SYSLINUX abarca un conjunto de gestores de arranque ligeros, para arrancar ordenadores en el sistema operativo Linux. Eloriginal era para arrancar desde sistemas de archivos FAT(normalmente discos flexibles o memorias USB).
+		
+		ISOLINUX, usado para arrancar desde sistemas de archivos ISO 9660 CD-ROM.
+		
+		PXELINUX, usado para arrancar desde un servidor de red con el sistema Entorno de ejecución de Pre-arranque (PXE).
+
+		
+ 
+******* 
+ Kernel 
+******* 
+
+	El kernel suele encontrarse en /boot/vmlinuz/
+
+
+
+********
+* TIPS *
+********
+
+	Si linux detecta una ACPI(Advanced Configuration and Power Interface) BIOS en el arranque, deshabilitara APM automáticamente.
+	
+	P:The message "Hard Disk Error" is displayed on the screen during Stage 1 of the GRUB boot process. What does this indicate?
+	R:The next Stage cannot be read from the hard disk because GRUB was unable to determine the size and geometry of the disk
+
+	Arrancar sin teclado: Buscar alguna opcion llamada "Halt On" o similar. En ella se le indica a la placa en que situaciones debe negarse a arrancar. Una de esas opciones debiera ser la presencia de teclado. 

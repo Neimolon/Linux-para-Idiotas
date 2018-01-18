@@ -1,0 +1,121 @@
+******** 
+* SysV *
+******** 
+
+
+	"init" es el primer proceso en ejecución tras la carga del kernel el que a su vez genera todos los demás procesos. con PID 1
+
+	System V introdujo un nuevo esquema de directorios en "/etc/rc.d/" que contiene scripts de arranque/parada de servicios en función del runlevel.
+
+
+
+	*********
+	Runlevels
+	*********
+	
+		- Un runleves es el estado en el que se encuentra el sistema(monousuario, multiusuario,entorno grafico,...), cada nivel es una agrupacion de servicios que debe arrancarse o pararse con el objetivo de conseguir ese estado.
+	
+		- Valores de los Runlevels:
+
+			-- CLASICO UNIX --
+				0 - Parada de sistema	
+				1 - Single-user sin red	
+				2 - Multiuser sin NFS	
+				3 - Full multiuser		
+				4 - No se usa			
+				5 - Multiuser con X11	
+				6 - Reinicio de sistema	
+				S - No existe			
+
+				
+			-- DEBIAN/UBUNTU DESKTOP --
+				0 - Parada de sistema
+				1 - Administración de sistema		  		
+				2 - Multiuser con X11
+				3 - Multiuser con X11
+				4 - Multiuser con X11
+				5 - Multiuser con X11
+				6 - Reinicio de sistema
+				S - True Single User
+		
+			-- RED HAT --
+				(Fedora, Gentoo, ...)
+		
+				0	# Parada del sistema
+				1 	# Modo single-user. No inicia servicios de red
+				2 	# Multi-user sin NFS
+				3	# Full multi-user
+				4	# No suele ser relevante y no se usa
+				5	# Multiuser con X11.
+				6	# Reinicio del Sistema
+
+
+	********
+	Ficheros
+	********
+		/etc/inittab		# Tabla de configuracion de arranque de sistema, se define el runlevel por defecto.
+							
+							Formato de filas: "<id>:<runlevel>:<accion>:<comando>"
+								<id>				# Identificador de la entrada
+								<runlevel>			# Runlevel sobre el que se ejecuta
+								<accion>			# Nombre de la accion:
+									[initdefault] 	# - define el nivel de ejecución por defecto del sistema.
+									[sysinit]	 	# - ejecuta el script en el arranque del sistema, independientemente del nivel de ejecución.
+									[wait] 			# - ejecuta el comando indicado y espera su ejecución para pasar a la siguiente línea.
+									[respawn] 		# - ejecuta el comando el segundo plano y continua leyendo las líneas del inittab.
+								<comando>			# Comando a ejecutar
+
+							Ejemplos:
+								
+							
+
+		/etc/init.d/*		# Se encuentran los script de arranque/parada de los servicios en SysV
+
+		/etc/rc[X].d/		# Scripts por runlevel, suelen ser enlaces simbólicos al directorio /etc/init.d/* y se pueden crear manualmente o a través de "update-rc.d" o "chkconfig"
+							# [X] es el valor del runlevel -  
+
+							Nomenclatura de los enlaces: <S|K><NN><servicio>
+								<S|K>		#Start|Kill - Los Scripts que empiezan por 'S' indican arrancar y por 'K' parar el servicio.
+								<NN>		#Orden de ejecución - de 0 a 99 - Puede haber multiples servicios por cada numero que se lanzaran por orden alfabético.
+								<servicio>	#Nombre del servicio a ejecutar
+								
+									Ejemplo: S01systat
+	
+		/etc/rc.local		#Script independiente del nivel de ejecución, se ejecuta después de todos los scripts de los niveles de ejecución.
+
+
+
+	********
+	Comandos
+	********
+	
+		init <runlevel> 				# Podemos cambiar el runlevel de la máquina
+		telinit <runlevel> 				# Podemos cambiar el runlevel de la máquina
+		runlevel						# Valor del runlevel en ejecución
+
+		service [<opt>] <servicio> [<accion>]		# Control de estado de servicios
+			[<opt>]
+				--status-all						# Estado de todos los servicios
+			[<accion>]
+				start
+				stop
+				reload
+				restart
+				status
+				default								#Enlazar servicio al arranque del runlever por defecto
+				remove								#Eliminar enlace del servicio del arranque
+				
+
+
+
+			-- Debian --
+		update-rc.d <nombre-script_en_init.d> <runlevel?>	#convertir script en daemon, es decir, que se ejecute al inicio de la sesión. (SysV)  
+		
+			-- Red Hat -- 
+		chkconfig									#chkconfig es el sistema tradicional de RedHat
+													#actualmente está de manera testimonial, ya que utiliza SystemD.
+			--list <servicio>						#muestra todos los servicios o informacion de un servicio en concreto
+			--add <servicio>						#Añade el servicio indicado en el runlevel en el que estas actualmente
+			--del <servicio>						#elimina un servicio de la configuracion de system V
+			--level <runlevel> <servicio> [on\off]	#Permite activar o desactivar un servicio en un runlevel 
+													#Lo hace a través de los comentarios en las cabeceras de los archivos de configuracion que se guardan en los archivos de /etc/init.d

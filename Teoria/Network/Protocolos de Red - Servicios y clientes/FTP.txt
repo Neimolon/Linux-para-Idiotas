@@ -1,0 +1,83 @@
+*******
+* FTP *
+*******
+File Transfer Protocol - Protocolo de Intercambio de archivos.
+	******
+	Puerto
+	******
+				Modo Activo:
+				20	#Data Stream 
+				21	#Control Stream
+				
+				Modo Pasivo:
+				21/TCP  								#Control Stream
+				(1024-65535) Anunciado por servidor 	#Data Stream
+
+
+	********
+	Clientes
+	********
+
+		-Nombre del Paquete: "ftp"
+
+		-Comandos:
+			ftp <host>	#Abre una conexion FTP
+
+				#Comandos en consola FTP
+				? 						#muestra ayuda
+				help 					#muestra ayuda
+				!<comando>	
+				ls
+				push <origen> <destino>
+				get	<origen> <destino>
+				open <host>
+				quit | exit	#salir
+				cd
+				mkdir
+				rmdir
+				
+	********			
+	Servidor
+	********
+		
+		--- VSFTPD (Very Secure FTP Daemon) ---
+		
+			- Nombre del Paquete: vsftpd
+			
+			- Ficheros:
+				/etc/init.d/vsftpd
+				/etc/ftpuser
+				/var/ftp/pub				#Directoprio FTP - Debe tener permisos de sticky bit (1777) y la directiva anon_upload_enable activada
+				/etc/vsftpd/chroot_list		#Lista de usuarios a enjaular (o no) a enjaular - puede tener otro nombre
+				/etc/vsftpd/vsftpd.conf
+							*** Directivas de Configuracion vsftpd***
+						anonymous_enable=YES		#permitirán los accesos anónimos al servidor
+						local_enable=YES			#Establece si se van apermitir los accesos autenticados de los usuarios locales del sistema.
+						write_enable=YES			#Establece si se permite el mandato write (escritura) en el servidor
+						anon_upload_enable=NO		#los usuarios anónimos tendrán permitido subir contenido al servidor. 
+													#Por lo general no es una función deseada, por lo que se acostumbra desactivar ésta. 
+						anon_mkdir_write_enable=NO	#usuarios anónimos tendrán permitido crear directorios en el servidor. 
+													#por lo general no es una función deseada, por lo que se acostumbra desactivar ésta.
+						
+						ftpd_banner=Bienvenido al servidor FTP de nuestra empresa	#Texto Bienvenida
+						ftpd_banner=Bienvenido al servidor FTP de nuestra empresa	#Texto Bienvenida
+						
+							--- Enjaulado de usuarios ---
+						chroot_local_user=YES 							#(añadirlo no esta añadido)
+						chroot_list_enable=YES							#
+						chroot_list_file=/etc/vsftpd/vsftpd.chroot_list	#se crea si no existe (sino no arranca)
+							------------------------------
+						pasv_min_port=30300
+						pasv_max_port=30309
+						anon_max_rate=524288
+						local_max_rate=1048576
+						max_clients=20
+						max_per_ip=10
+						
+						
+			- Comandos:
+			
+				service vsftpd [start|stop|...]		#Arranque del servicio
+				
+			
+		

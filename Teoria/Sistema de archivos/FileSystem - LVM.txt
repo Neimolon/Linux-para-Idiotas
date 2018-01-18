@@ -1,0 +1,173 @@
+*******************************
+* LVM(Logical Volume Manager) *
+*******************************
+
+
+(Es necesario instalar el paquete de la libreria, se puede instalar tambien con el sistema - apt-get install lvm2)
+
+	Estructura :
+		Multiples discos -> Grupo de volumenes -> Volumenes lógicos
+
+	Nomeclatura:
+		pv -> Physical Volume (discos fisicos)
+		vg -> Volume Group (grupo de volumenes) -->Equivalente a un disco
+		lv -> Logical Volume (volumenes logicos) -->Equivalente a las particiones
+
+***************
+Phisical Volumes
+***************
+	......
+	
+*************
+Volume Groups
+*************
+	Un grupo de volúmenes es la agrupación de volúmenes físicos y contendrá los volúmenes lógicos.
+
+	Alguna información que mantiene en “metadata”:
+		- Cuando y como fue creado (system id)
+		- Nombre e indentificados
+		- Propiedades, tamaño, extendible
+		- Lista de volúmenes físicos Pvs
+		- Lista de volúmenes Logicos LVS.
+	
+***************
+Logical Volumes
+***************
+	
+Uno de los problemas de trabajar con volumenes lógicos es que si se rompe un disco físico se puede perder todo el sistema de Grupos de Voúmenes, existen 3 modos de montar un LVM siendo. 
+
+	 - Lineal 	->  - Si es posible el espacio estará en un solo PV
+	
+	 - Striped	->  - Se reparte el espacio en diferentes PV, Proporciona un acceso más rápido
+	
+	 - Mirror	->  - Mantiene copias idénticas en diferentes dispositivos , necesitaremos un log para transaciones, memoria, disco…., 
+					- si tenemos dos pv los datos se iran copiando del pv1 al pv2 , si nos falla el pv1 podremos recuperar los datos del pv2.
+
+	
+Cada LV puede combinar estas diferentes formas dentro del mismo VG.
+
+*********
+SnapShots
+*********
+
+
+*********
+Comandos:
+*********
+
+	lvmconf
+		--disable-cluster
+
+###Familia PV -manjerar volumenes fisicos
+	
+	pvs						#Muestra información de los volúmenes físicos (Tamaño, espacio libre, a que VG pertenece y atributos)
+		–v 					#Verbose
+	pvscan					#Escanea el sistema en búsqueda de nuevos/existentes PVs. 
+		–u 					#muestra el identicicador.
+	pvdisplay <dev>			#Miestra informacion del volumen fisiso
+	pvcreate <particion>    #Inicia un disco o particion usado por LVM
+		-ff					#Crea el volumen físico incluso si ya pertenece a un VG
+		-u <UUID>			#uuid Establece manualmente el UUID
+		-v					#Vervose - muestra mas información del proceso
+	pvdisplay [dispositivo] # Muestra los atributos de los volúmenes.	
+		-f					# Vervose
+	pvmove [opciones] <pv_src> <pv_dest>		#Mover un volumen físico
+		-i2
+		-v
+	pvchk					#Comprueba existencia de errores en los sectores (fsck para LVM)
+	pvchange				#Cambia permisos de asignacion de un volumen fisico.
+
+###Familia VG -manjerar grupos de volumenes
+	
+	vgs							#Muestra los grupos de volúmenes en el sistema (nombre, numero de PV y LV, atributos, tamaños ...)
+	vgscan     					#Escanea el sistema en búsqueda de grupos de Volumenes
+		-mknodes				#Make Nodes - crear dispositivos en /dev/, (si estamos importando un grupo de volúmenes de otro equipo)
+	vgdisplay [vg] 				#Muestra atributos de VG
+	vgchk						#Comprueba los metadatos de los grupos de vokumenes
+	vgcreate  <nombre_grupo_volumenes> <physical_volume_1> <pv2> <pv3..>  # Crea un grupo de volumenes a traves de un disco fisicos
+		-s <size?>														  #Size - tamaño bloque, especifica un tamaño de bloque, por defecto 4MB.
+		-v																  #Verbose 
+	vgremove <nome_grupo>		#Eliminar completamente un grupo de volumenes
+		-f						#Force 
+	vgextend <vgname> <pv>		#Añadir volumenes disicos a un grupo de volumenes
+	vgreduce <vg_name> <pv>		#Sacar volumen físico de grupo de volúmenes		
+		-removemissing			#Para cuando se necesita quitar un disco que el sistema ya no reconoce
+		--force					#Forzar
+		-a						
+	vgrename <vg_name> <vg_name_new>		# Renombra nombre de LVG
+	vgchange					#Editar los atributos de LVG y permite des/activar los VG
+		-a						#Habilita/Deshabilita los LVG (y/n)
+		-u
+		-x						#Habilita o deshabilita los 
+	vgconvert <mode> <vg_name>	#Convierte los metadatos de los VG de una version a otra
+		–M2 <vg_name> 			#convierte a LVM2
+		-M1 					#convierte a LVM1	...
+	vgexport					#Hace que un VG sea desconocido para el sistema permitiendo que pueda moverse a otro ordenador
+	vgimport					#Hace que el sistema reconozca un VG
+	vgimportclone				#Importa un VG, renombrando lo VG conflictivos
+	vgmerge						#Une dos grupos de volumenes (uno de ellos debe estar inactivo)
+	vgsplit						#Divide un grupo de volumenes (lo contrario a vgmetge)
+	vgmknodes					#Actualiza los archivos de dispositivos en /dev que hacen referencia a LV
+	vgcfgbackup					#VG Config Backup - Realiza copias de seguridad en de los metadatos del volumen (/etc/lvm/backup)
+	vgcfgrestore				#VG Config Restore- Recupera copias de seguridad en de los metadatos del volumen (/etc/lvm/backup)
+			  
+
+###Familia LV -manjerar volumenes logicos
+
+	lvs	[options] 						#Muestra los volúmenes lógicos, a que VG pertenece, atributos, tamaño, información de mirror.
+		-a								#Lista todos los volúmenes logicos - Incluidos mirroring
+		-o +devices 					#Muestra donde está alojado el mirroring
+	lvscan								# Escanea el sistema en búsqueda de existentes o nuevos volúmenes lógicos.
+										# Útil para ver la ruta dentro de /dev/ - Muy útil para cuando queramos formatearlo o montarlo.
+	lvdisplay [<nombrevg>|<nombrelv>] 	#muestra atributos	
+	lvcreate [opciones] <vg_name>   	# Creamos un volumen lógicos
+		-L <size>     	  				# Definir tamaño (GB, MB, KB ...)
+		-n <lv_name>					# Definir nombre
+		-l <blocks> 					# Tamaño en bloques 	
+		-i <stripes>					# En cuantos discos se alojara 
+		-m<n_copias>					# Cuantas compias tendrá 
+			--mirroring <path>			# Donde se alojara el log, por defecto en memoria (core) <path> = <disk>/core/mirrored 
+										# Si lo hacemos con disco será mas rápido la consistencia
+			--mirrorlog <core|disk>		# Meter el log del mirror en <memoria|disco>. En disco se pide un tercer disco para alojar el log
+				--alloc anywhere 		#Con opcion "disk". Mete el log en los discos usados para mirroring en vez de un tercer disco
+			--corelog					#Meter el log en memoria
+		-s <snapshot>					# SnapShot - 
+			### Ejemplos de creación con lvmcreate:
+				lvcreate -L 1G –n linearLV volgrp					  # Linear
+				lvcreate –i 2 –L 1G –n stripedLV volgrp				  # Stripped
+				lvcreate –m1 –mirrorlog core –L 1G –n mirrorLV volgrp # Mirrored - Para este comando necesitamos tres discos en VG volgrp, uno es para el log.
+				lvcreate --size <size> -s -n <snp_name> <lv_name>	  # SnapShot
+	lvrename <vg_name> <lv_name> <lv_name_new>	 	#Cambia el nombre
+	lvchange [opciones]  <lv_name>					#Cambia propiedades, atributos de lv.
+		-a 											# Deshabilita (y/n)
+		-p 											# Modo lectura o escritura. (r/w)
+			###Ejemplos:
+			lvremane <volgrp> 							#documentos documentos2
+			lvrename <vg_path_old> <vg_path_new>		#También lo podríamos realizar, por si nos equivocamos:
+	lvresize [opciones] <lv_name> 				#Establece el tamaño de un volumen lógico
+		-L [+/-]<size>							#Modificar Tamaño Bytes
+		-l [+/-]<blocks>						#Modificar Tamaño bloques
+	lvextend [opciones] <lv_path>				#Ampliar el tamaño de un volumen lógico
+		-L <size>   							#Extender tamaño de columen lógico 
+	lvremove <lv_path> 							# Eliminar volumen
+		-f										# Force
+	lvereduce [opciones]						#Reduce el tamaño de un volumen logico
+		–L [+/-]<tamaño> <lv_name>				#Tamaño
+	resize2fs 									#redimensionar una particion EXT3|EXT4
+												#Se puede redimensionar en frio(desmontando el disco del volumen) o en caliente (con el disco funcionando)
+	xfg_growfs?									#Extender sistema de archivos de tipo XFS
+
+
+*********
+* Pasos *
+*********
+
+	1º Formatear disco duro (Particion tipo 8e)
+	2º Crear PV - pvcreate - Inicializar discos fisicos para hacer volumenes logicos, se hace a traves de un flag
+	3º Crear VG - vgcreate
+	4º Crear LV - lvcreate - se crea una carpeta en dev con el nombre del grupo de volumenes que contiene enlaces a los volumenes lógicos en /dev
+	5º Formatear - mkfs
+	6º Montar
+
+
+

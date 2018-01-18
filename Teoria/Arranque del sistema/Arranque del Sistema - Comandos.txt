@@ -1,0 +1,106 @@
+***********************************
+* Arranque del Sistema - Comandos *
+***********************************
+
+****
+LILO
+****
+	lilo	#Instalar lilo en el MBR
+
+
+****
+GRUB 
+****
+
+	update-grub		#actualizar el grub despues de modificar la configuracion. (genera un nuevo fichero grub.cfg)
+	update-grub2	#alias de update-grub (genera un nuevo fichero grub.cfg)
+	grub-mkconfig	#alias de update-grub (genera un nuevo fichero grub.cfg)
+	grub-install    #Instalar grub2
+	grub-md5-crypt 	#Pide una password y te da un md5 que hay que poner en /boot/geub/grub.conf
+	mkboot
+		--device <device> <filename?>		#Crear un disco de arranque
+	
+*******
+SystemD
+*******
+	systemd-analyze	[opciones]		#Analisis del estado, tiempo de arranque ... de SystemD
+		critical-chain				#muestra el orden de carga de las diferentes unidades
+		plot						#Genera un SVG(Gráfico vectorial) detallando los servicios del arranque del sistema
+		blame						#Muestra una lista de todas las unidades en ejecución ordenadas por el tiempo que les llevó inicializarse
+									#Esta salida puede ser engañosa debido a que algun servicio puede ralentizarse por estar a la espera de la inicializacion de otro
+
+	systemd-delta					#muestra las sobrecargas de los targets
+
+	systemctl [opciones] <unit> 		#Comando de administracion del sistema en SystemD
+			#Actions
+		get-default						#Muestra el target con el que se inicial el sistema
+		set-default <taget>				#selecciona el target por defecto con el que se va a iniciar el sistema
+		isolate							# cambiar entre runlevels, equivale a telinit
+		start <unit>					# iniciar servicio
+		stop <unit>						# parar servicio
+		restart <unit>					# reiniciar servicio
+		try-restart <unit>				# reiniciar servicio solo si esta en ejecución
+		reload <unit>					# recargar servicio
+		status <unit>					# ver estado de servicio
+		enable <unit>					# Activa un servicio en el arranque	
+		reenable <unit>					# Regenera los enlaces que se llaman por las unidades de arranque (usar si se sobrecarga una unidad por ejemplo)
+		is-enabled <unit>				# Comprueba si una unit se arranca en el inicio
+		is-active <unit>				# Comprueba si una unit esta activa
+		disable	<unit>					# Quitar un unit del arranque
+		list-units						# Mostrar todas las unidades es uno
+		list-unit-files					# Listar todas las unidades 
+		list-dependencies				# ver las dependencias de un servicio
+		reboot							#Reiniciar sistema
+		halt							#Cerrar sistema
+		poweroff						#Apagar la máquina	
+		mask <unit>						#Enmascarar el servicio -  Esto enlaza las unidades a "/dev/null" haciendo imposible arrancarlas. 
+										#Es una version mas fuerte de disable
+		unmask <unit>					#Desenmascarar el servicio
+		snapshot <nombre>				#Crea un snapshot de toda la configuracion del sistema, 
+										# "systemctl isolate actualizacion.snapshot" para revertir el sistema al snapshot
+		delete <unit>					#Eliminar unidades
+		show <unit>						#Muestra el archivo de configuración del <unit>
+		help <unit>						#Muestra la página del manual asociada con una unidad
+		daemon-reload					#Recarga systemd, escaneando en busca de unidades nuevas o modificadas	
+		edit <unit>						#Permite editar configuracion de servicios creando una sobrecarga a la configuracion 
+										#Crea el fichero /etc/systemd/system/<unit>.d/override.conf
+			#Params
+		-? | --all							# Muestra todas las unidades (en uso o no) con la informaion de list units
+		-t | --type <type>					# Filtra las unidades por su tipo <type> = target,service,...
+		-p | --???? "<str>"					#No fuking idea
+		-h | --host <user@host> <command>	#lanzar comandos remotamente como ssh
+
+*******
+SystemV
+*******
+
+	init <runlevel> 				# Podemos cambiar el runlevel de la máquina
+	telinit <runlevel> 				# Podemos cambiar el runlevel de la máquina
+	runlevel						# Valor del runlevel en ejecución
+
+	service [<opt>] <servicio> [<accion>]		# Control de estado de servicios
+		[<opt>]
+			--status-all						# Estado de todos los servicios
+		[<accion>]
+			start
+			stop
+			reload
+			restart
+			status
+			default								#Enlazar servicio al arranque del runlever por defecto
+			remove								#Eliminar enlace del servicio del arranque
+			
+
+
+
+		-- Debian --
+	update-rc.d <nombre-script_en_init.d> <runlevel?>	#convertir script en daemon, es decir, que se ejecute al inicio de la sesión. (SysV)  
+	
+		-- Red Hat -- 
+	chkconfig									#chkconfig es el sistema tradicional de RedHat
+												#actualmente está de manera testimonial, ya que utiliza SystemD.
+		--list <servicio>						#muestra todos los servicios o informacion de un servicio en concreto
+		--add <servicio>						#Añade el servicio indicado en el runlevel en el que estas actualmente
+		--del <servicio>						#elimina un servicio de la configuracion de system V
+		--level <runlevel> <servicio> [on\off]	#Permite activar o desactivar un servicio en un runlevel 
+												#Lo hace a través de los comentarios en las cabeceras de los archivos de configuracion que se guardan en los archivos de /etc/init.d

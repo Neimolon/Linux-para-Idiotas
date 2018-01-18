@@ -1,0 +1,152 @@
+******
+* VI *
+******
+
+******
+Modos:
+******
+
+###Cambiar de Modos:
+
+	Modo Comandos:
+		Poner en modo comandos 	-> Esc
+	
+	Modo Ex:
+		Consola Ed				-> : (en modo comandos)
+		Consola Linux			-> :!<linux_command>	(ejecuta comando de linux sin salir de vi)
+		
+
+	Modo Inserción:
+		Insercion (antes del caracter del cursor) -> i
+		Insercion (al principio de la linea actual) -> I
+		Inserción (despues del caracter del cursor) -> a
+		Inserción (al final de la linea) -> A
+		Insercion (en la linea siguiente) -> o
+
+###Comandos en Modo Comandos (pulsando teclas):
+
+	--Nota: 
+		Si se pulsa un numero antes del comando, ese comando se repite ese número de veces:
+			
+			Ejemplo:
+			20x -> borra 20 caracteres
+			
+	--Navegación:
+		
+		-Caracteres:
+		h -> columna derecha
+		j -> linea abajo
+		k -> linea arriba
+		l -> columna izquierda
+		
+		-Palabras:
+		w -> Ir al final de la palabra
+		
+		-Lineas:
+		<n>G			->  Mueve el cursor a la linea n
+		H | Ctrl + u	->  Mueve el cursor a la primera linea del documento
+		L				->  Mueve el cursor a la ultima linea del documento		
+
+		
+	--Borrado:
+		x -> borra el caracter del cursor
+		dd -> borra la linea actual, (más bien la corta)
+		p -> pegar 
+
+		
+	--Cortar:
+		d<nav_char>		-> Corta desde la posicion del cursor hasta el desplazamiento del caracter de navegación
+		dd 				-> Realmente copia la linea seleccionada al buffer, aunque también se usa para borrar
+
+		
+	--Copiar:
+		y<nav_char>		-> Copia desde la posicion del cursor hasta el desplazamiento del caracter de navegación
+		yy -> Copia la linea seleccionada
+
+		
+	--Misc:
+		ZZ -> Guardar y Salir
+		~  -> Intercambiar el siguiente caracter entre mayus y minus
+		
+
+
+*******
+Modo Ex
+*******
+
+	--Nota: 
+		-En la linea de comandos de Ed( se llama pulsando ":")
+		
+		-Si se escribeun numero antes del comando ED, ese comando se repite ese número de veces:
+			
+			Ejemplo:
+			:20yy -> copia 20 lineas empezando en la pocicion del cursor
+			
+
+	---Guardar y salir:
+		:w 		-> write, guardar
+		:q 		-> quit, salir
+		:wq 	-> guardar y salir 
+	
+	---Cortar y pegar
+		
+		:yy 		- copiar toda la linea (Yank)
+		:dd 		- cortar toda la linea
+		:p 			- pegar
+		:r <file> 	- Copia el contenido de <file> en el archivo actual
+	
+	
+	---Deshacer
+		:u 	- UnDo
+	
+	---Navegación
+		:n 		#ir a la linea número n
+	
+	--Busqueda:
+
+		/ 			#Buscar hacia adelante 
+		? 			#Buscar hacia atras, 
+		/<texto>   	#Posiciona el cursor en la siguiente aparicion de la palabra "texto"
+
+	--Reemplazo:
+
+		:[%|n]<regex>/<subst>/<mod> 	#reemplazar en [%] 		todo el documento, 
+										#			   [n] 		la linea correspondiente al número n
+										#			   [n,m]	las lineas dentro del rango de números n,m
+										#el patron <regex>
+										#por <subst>
+										#atendiendo al modificador <mod>
+																	g	-> Global
+																	i	-> Case Insensitive~
+
+		-->Ejemplo de reemplazo y explicación de sus partes:
+
+		":%s/texto_a_buscar/texto_de_reemplazo/g" 	-> busca y reemplaza la cadena "texto_a_buscar" por "texto_de_reemplazo" en todo el documento y para todas las apariciones.
+
+		":" 					-> linea de comandos Ed
+		"%"						-> Reemplazar todo el documento
+		"s" 					-> Substituir - Se indica que la operación a realizar es la substitución de patrones 
+		"/texto_a_buscar" 		-> Texto que se debe buscar
+		"/texto_de_reemplazo" 	-> Texto a reemplazar
+		"/g" 					-> Global. Reemplazar sobre todas las apariciones (otra opcion comun es "i" de "case insensitive")
+
+	---Misc
+		:set number	 					#muestra el numero de linea
+		:set nonumber	 					#desactiva el numero de linea
+		:e <file>						#Abrir otro archivo
+		:syntax on						#activa el coloreo de sintaxis
+		:highlight						#Configuracion de coloreado de sintaxis
+		:colo | colorcheme <scheme>		#Cambia el esquema de colores
+*********************************************	
+Configuracion de Arranque personalizada de Vi
+*********************************************	
+
+	En la home de cada usuario puede crearse un archivo llamado ".vimrc" que cargará opciones en el momento del inicio, por ejemplo, introducir el comando de Ed "set numbers" en el archivo hará que cada vez que se inicie lo haga mostrando los numeros de linea
+
+	
+*****
+Files
+*****
+	~/.vimrc								#Script de configuracion inicial de vi 
+	/usr/share/vim/vim<version>/syntax		#Archivos de configuracion de coloreados segun el tipo de archivo
+	/usr/share/vim/vim<version>/colors		#Archivos de configuracion de esquemas de colores

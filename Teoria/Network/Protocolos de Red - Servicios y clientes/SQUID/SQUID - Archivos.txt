@@ -1,0 +1,7 @@
+********************
+* SQUID - Ficheros *
+********************
+
+	/etc/squid.conf			#fichero principal de configuracion 
+	/var/log/squid			#Loggin de actividad de squid
+	/var/spool/squid		#Directorio habitual de la cache de squid

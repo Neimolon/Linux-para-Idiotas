@@ -1,0 +1,34 @@
+*********************
+* Apache - Comandos *
+*********************
+
+	apache 
+		start			
+		stop
+		restart
+		
+	apachectl <actions|options>			#gestor de configuracion de apache
+		<actions>
+			configtest		#Comprobar si la configuracion es la correcta
+			graceful		#reiniciar apache sin tirar las conexiones
+		<options>
+			-l 				#Visualización de módulos compilados
+			-M				#Visualización de módulos cargados
+		
+	htpasswd <ruta/fichero> <usuario>		#Crear <usuario> para apache en el 
+		-C <ruta/fichero> <usuario>									#Generar archivos de claves si no existe
+		-D <ruta/fichero> <usuario>			#Borrar usuario <usuario> en el archivo de claves	<ruta/fichero>
+
+	openssl					#Generar certificados ssl
+		<action>
+			genrsa
+			req
+			x509
+			
+			Ejemplos de uso.
+				1º - openssl genrsa –out intranet.key 1024										#Generacion de certificado - archivo .key
+				2º - openssl req –new -key intranet.key –out intranet.csr						#Generacion de certificado - archivo .csr
+				3º - openssl x509 -req -days 365 -in intranet.csr -signkey intranet.key –out	#Autofirmar intranet.csr
+				
+				Nota: El archivo csr es el que se el evía a la entidad certificadora que es la que te lo debería de firmar, como no queremos pagar una pasta por ello se autofirman. Actualmente puedes conseguir uno firmado por letsencrypt
+				

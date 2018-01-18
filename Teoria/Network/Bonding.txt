@@ -1,0 +1,8 @@
+***********
+* BONDING *
+***********
+ - Acoplamiento de Tarjetas de red
+ 
+ 
+ 
+ /proc/net/bonding/bond0

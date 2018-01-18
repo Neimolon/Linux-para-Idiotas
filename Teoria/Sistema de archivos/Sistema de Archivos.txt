@@ -1,0 +1,608 @@
+************************************
+* PARTICIONADO y PUNTOS DE MONTAJE *
+************************************
+
+	BIOS --> MBR --> PRIMARIAS --> sda|hda(1-4)
+				 --> EXTENDIDAS + LÓGICAS -->sda|hda(5 - >5)
+
+	EFI  --> GPT --> PRIMARIAS
+
+	La tabla de particiones se guarda en la MBR
+
+
+		A la hora de particionar se utiliza la lógica de uso, separando del sistema y dandole más espacio a los directorios que más uso y tamaño van a adquirir dependiendo de para lo que se haya pensado usar el sistema.
+
+		-Si el uso va a ser domestico en donde la mayoria de datos estarán en las carpetas de los usuarios.
+		500Gb --> 2GB   --> SWAP
+			  --> 30GB  --> /
+			  --> 450GB --> /home
+			  
+		-Uso para servidor accedido por muchos usuarios(Web, Database,...)
+
+		500GB --> 2GB   --> SWAP	
+			  --> 30GB  --> /
+			  --> 400GB --> VAR
+			  --> 70GB  --> HOME
+
+	**************************
+	Nomenclatura de los discos
+	**************************
+
+	<tipo de dispositivo><letra de dispositivo><numero de partición>
+		<sd>		        <a>					 <1>
+	
+	-Tipo de dispositivo:
+		sd: Originalmente para SCSI y SATA, actualmente se usa en todos los discos.
+		hd:	Discos IDE
+		fd: Disquetera
+		cdrom | sr0: CD ROM
+		
+		*Desde el kernel 2.6 todos los discos (IDE o Sata) se denominan como sdX, se abandona la nomenclatura hdX.
+		
+		
+	-Letra de dispositivo: Se le asigna una letra a cada dispositivo del mismo tipo que se encuentre de la a "a" la "z"
+
+	-Número de partición: Se le asigna un número a cada partición existente en el dispositivo de bloques.
+						 Las particiones primarias van de la 1 a la 4.Sólo estan permitidas un máximo de 4.
+						 Las particiones lógicas se numeran de 5 para arriba.
+						 Los discos SCSI-1 tienen un máximo de 7 particiones.
+
+	************************
+	MBR - Master Boot Record
+	************************
+	
+	
+	
+	**************************
+	GPT - GUID Partition Table
+	**************************
+
+	En GPT se utiliza UUID para identificar los discos, no hay particiones extendidas ni lógicas,...¿más bien, todas son lógicas?. Numero arbitrario de particiones dependiendo del espacio asignado en la tabla de particiones. Por defecto trae para 128 particiones.
+
+		Ventajas del GPT:
+			-Utiliza 64bits LBA para almacenar numeros de sector, permite un tamaño máximo de 2Zb
+			-Mejor sistema de comprobacion de errores
+			-Backups
+
+	********
+	Ficheros
+	********
+
+		/etc/fstab (FileSystemTABle) --> Se definen todos los puntos de montaje que se han de realizar al arranque del sistema. 
+
+			######### Ejemplo /etc/fstab #############
+			ESTRUCTURA DE FSTAB
+			DISPOSITIVOS                PUNTOS DE MONTAJE          TIPO         OPCIONES          DUMP           PASS
+			<UUID,LABEL,particion>       <directorio>              <fs>       <read,write...>    <backup>       <check>
+			/dev/sda1                    /mnt                      ext4         defaults           0               0
+			/dev/sdxx                    none                      swap         defaults           0               0
+			##########################################
+
+		OPCIONES EN EL ARCHIVO FSTAB || MOUNT:
+			OPCION			TIPO DE FS			DESCRIPCION
+			defaults		Todos				Opciones por defecto
+			loop			Todos				Montar archivo como si fuera un dispositivo Ej mount -o loop ./file.img /mnt/image
+			auto/noauto		Todos				Monta el FS cuando root usa mount -a
+			user/nouser		Todos				Determina si los usuarios normales pueden montar el sistema de archivos, solo el usuario que lo monto puede desmontarlo
+			users			Todos				Similar a "user" salvo porque cualquier usuario puede desmontar el FS
+			owner			Todos				Similar a user, pero el usuario ademas debe ser el propietario del dispositivo
+			remount			Todos				Permite cambiar opciones del FS montado al volver a usar el comando mount sin desmontarlo
+			ro				Todos				Monta el sistema de archivos como Read Only
+			rw				R/W FS				Monta el FS como Read/Write
+			uid=<valor>		NTFS,VFAT..			Define al usuario correspondiente al uid <valor> como propietario de todos los archivos
+			gid=<valor>     NTFS,VFAT..			Define al grupo correspondiente al gid <valor> como propietario de todos los archivos
+			umask=<valor>	NTFS,VFAT..			Define la mascara que dictamina el valor de los permisos para TODO el FS
+			dmask=<valor>	NTFS,VFAT..			Define la mascara que dictamina el valor de los permisos para todos los DIRECTORIOS del FS
+			fmask=<valor>	NTFS,VFAT..			Define la mascara que dictamina el valor de los permisos para todos los ARCHIVOS del FS
+			conc=<code>		MS/Apple			Conversion de archivos <code>=[binary|text|auto]	
+			norock			iso9660				Desactiva la extension RockRidge
+			nojoliet		iso9660				Desactiva la extension Joliet
+
+
+
+	********
+	COMANDOS
+	********
+	
+		fdisk				#listar particiones disponibles en el sistema
+			<device>    	#Crear particion en el disco <device>
+			
+		cfdisk			  #Particionado con un toque visual
+		
+		lsblk			  #listar discos y sus particiones
+		
+
+		
+			
+			
+*******		
+Inodos
+*******
+(Diapositiva 104.1)
+
+
+-Enlaces duros y simbólicos e inodos. Que pasa cuando se generan y se borran
+
+*******
+Bloques
+*******
+(Diapositiva 104.1)
+
+
+	***********
+	Tipos de FS
+	***********
+
+	- Sistemas de Archivos Nativos:
+	
+	Ext2:		Fue creado para Linux.
+				Sistema fiable y rápido.
+				Parciciones pequeñas (< 1Gb ) como boot o Pendrives, en las que el tamaño de los registros de sistemas de archivos más avanzados puede ser un problema.
+				Sin Journal.
+				Aloja un número fijo de inodos en el momento de la creacion del sistema de archivos. No los genera segun requerimiento.
+		
+	Ext3:
+				Como ext2 con journaling.
+
+				-> Journal: Es un sistema de respaldo de transacciones que guarda una relacion de los cambios antes de escribirlos, lo que hace los discos mucho mas tolerantes a fallos y evitar corrupciones en caso de cortes de alimentación,etc.
+				
+	Ext4:
+				Como ext3 con posibilidad de trabajar con sistemas de archivos grandes(32TiB) o archivos muy grandes (2TB)
+				Tiene extensiones pensadas para mejorar su rendimiento.
+
+	ReiserFS:
+				Creado desde cero como sistema de archivos con respaldo de transacciones.
+				Especialmente indicado para trabajar con archivos pequeños (32Kb)
+
+	JFS:						Creado por IBM (AIS - OS/2)	 
+	(Journales File System)		Tiene respaldo de transacciones avanzado.
+								Ideal para usar como Dual Boot con alguno de esos S.O.
+
+	XFS: 						Creado por Silicon Graphics para su S.O. Irix.
+	(Extents File System)		Robusto, veloz y flexible. Puede trabajar con discos de gran tamaño
+								Algunas características no encajan del todo en Linux.
+								
+	BTRFS:		Inspirado en ZFF(Zettabyte File System) de Sun.
+				Rápido y puede trabajar con discos de gran tamaño.
+				En estado experimental.
+				Sus características avanzadas lo situan como un posible soceso de ext4.
+
+			
+	- Otros sistemas de archivos con los que Linux puede trabajar:
+
+	FAT:						Para O.S. Windows y Dos
+	(File Allocation Table)		Primitivo pero omnipresente. 
+								Lo entienden casi todos los S.O. por lo que es una buena opcion para intercambiar datos.
+								
+	NTFS:							Para Windows NT.
+	(New Technology File System)	El soporte en Linux es bastante rudimentario e incluso necesita de valerse de controladores externos (como NTFS-3G) para crear nuevos archivos.
+
+	HFS y HFS+:						Sistemas de archivos usados por Apple.
+	(Hierachical File System)		Linux tiene soporte completo de lectura/escritura
+
+	- Removable device File Systems
+
+	ISO-9660:		Sistema de archivos estándar para CD-ROMS
+
+	UDF:						Se utiliza en DVD-ROM y dispositivos regrabables.
+	(Universal Disk Format)		
+
+
+
+
+
+	************************
+	FORMATEO DE PARTICIONES:
+	************************
+		En la particion se define un sistema de ficheros, pero no se crea. Por lo que una vez creada la particion es necesario crear el sistema de archivos
+		
+		mkfs -t <type> <ruta_particion>
+		mkfs.<type> <ruta_particion>
+		mkswap
+		
+
+**************************************
+* FHS(Filesystem Hierarchy Standard) *
+**************************************
+
+
+	***************
+	/ - Root | Raiz
+	***************
+
+		-> Se pueden montar en particiones independientes
+			
+	/home			#Contiene los archivos de datos de los usuarios, no se toca en actualizaciones de sistema.
+					#Muy recomendable en una particion independiente
+					#200Mb - +3Tb Dependiendo del número de usuarios y de sus necesidades de almacenamiento
+	
+	/boot			#Archivos básicos para el arranque. 
+					#En una particion independiente se evaden problemas de BIOS y algunos bootloaders antiguos.
+					#100Mb - 500Mb
+				
+	/usr 			#contiene la mayoria de programas de Linux y los archivos de datos. Software accesible por los usuarios
+					#Una particion independiente puede dar problemas, sobre todo LVM.
+					#100Mb - 25Gb	En sistemas de pocos usuarios puede necesitar más espacio incluso que /home					
+		/usr/local		#Archivos de datos y binarios únicos para esta instalación de linux, pensado para los compilados personalmente. Es como una carpeta overides en la que te aseguras que ningun gestor de paquetes va a pisar tus archivos.
+		/usr/bin		#Binarios accesibles a usuarios "System Wide Binaries"
+		/usr/sbin		#Como /usr/bin pero scripts de superusuarios
+	
+	/var  			#Variable - Contiene archivos asociados al funcionamiento diario del ordenador (logs,correos,cronjobs,impresoras,etc). Suelen ser de naturaleza efímera
+					#En particion independiente si se usa el pc como servidor.
+					#100Mb - +3Tb
+	
+	/tmp			#Archivos temporales creados por usuarios regulares
+					#100Mb - 20Gb
+					
+	/mnt 			#para montar los dispositivos, actualmente se tiende a usar /media
+	/media			#Directorio para crear carpetas en las que montar dispositivos.
+	
+
+
+			-> Deben colgar de Root (No en particiones independientes).
+			
+	/etc 			#configuracion de todos los servicios del sistema
+					
+	/dev 			#Dispositivos principalmente de almacenamiento
+
+	/sbin			#Binarios críticos para arrancar y  manejar el sistema - Solo accesible por ROOT
+	/bin 			#Binarios para arrancar y manejar el sistema, accesibles por los usuarios. 
+						#-Los necesarios para montar el sistema y sus partes criticas hasta montar /usr. Todo lo que se ejecuta despues se recomienda ponerlo en /usr/bin si no hay problema en ello.
+	
+	/lib 			#se almacenan las librerias del sistema,modulos del kernel, units de systemd y demás recursos compilados de los que se valen los programas.
+	/lib64 			#Librerias compiladas en 64 bits
+	
+	/proc 			#rutas de acceso al kernel
+	/sys 			#evolucion del /proc; Dispositivos HW que maneja el kernel
+	/run 			#Esta cogiendo importancia, archivos de arranque del sistema
+
+	
+	
+	*********************
+	ABRIENDO EL ÁRBOL FSH
+	*********************
+
+
+	--------- VFS: Sistemas de archivos virtuales en el árbol del sistema de archivos en Linux -----------------
+
+	
+		||--- PROC (PROCESS) ---||
+	
+	
+	Sistema de archivos virtual(VFS), alojado en la memoria fisica, se monta en este directorio durante la carga del sistema. 
+	Contiene información sobre dispositivos y procesos, permitiendo la interacción de los mismos.
+	
+	No ocupa espacio en disco.
+	
+
+	Más significativo en "/proc/":
+
+			- CPU
+		/proc/cpuinfo           #Información acerca del procesador: su tipo, marca, modelo, rendimiento, etc.
+		/proc/loadavg			#El nivel medio de carga del sistema.
+		/proc/stat				#Estadisticas del sistema (Fallos de página,...)
+		/proc/uptime			#Tiempo en segundos que el sistema lleva funcionando
+		/proc/partitions		#Listado de los discos que han detectado las controladoras de disco
+		
+			-Memoria
+		/proc/meminfo           #Info de la memoria
+		/proc/dma				#Direct Memory Access. Canales ISA DMA en uso. 
+									-El controlador DMA permite a dispositivos acceder a memoria sin una carga masiva de peticiones a la CPU
+									-ISA DMA: Arquitectura de 7 canales, 16 bits.
+		/proc/ioports			# Rango de direcciones de memoria registradas para las comunicaciones entre CPU y los dispositivos de entrada y salida
+		/proc/kcore				#Representa y tiene el mismo tamaño que la memoria fisica del sistema. No existe en memoria como el resto de los archivos de /proc sinó que se genera en el momento que un programa accede a este.
+			
+			
+			-Dispositivos:
+		/proc/devices			#lista de dispositivos conectados, ordenados por su tipo(dispositivos de bloque o de caracter)
+		/proc/bus/*				#Elementos conectados a los buses
+		/proc/bus/usb/			#Acceso a los sistemas de archivos conectados al bus USB
+		/proc/bus/pci			#
+		/proc/scsi/scsi			#Controladora de discos scsi
+
+		/proc/interrupts        #IRQs - Muestra una tabla que relaciona los canales IRQ disponibles con el dispositivo y el driver que envía la señal, además de hacer un recuento de las señales enviadas a cada core.
+			-Interrupciones: 
+			Señal que se origina en un dispositivo hardware para indicar al procesador que algo requiere su atención
+
+				###Interrupts 
+					#Canal IRQ	--------------#CPU Cores-------------				   #Driver
+					#			CPU0       CPU1       CPU2       CPU3       
+					#0:         46          0          0          0   IO-APIC-edge      timer
+					#1:          2          0          1          0   IO-APIC-edge      i8042
+
+				
+			-Sistemas de archivos:
+		/proc/filesystems		#Lista los sistemas de archivos que están soportados por el kernel.
+		/proc/mounts            #tabla de particiones y puntos de montaje
+		/proc/diskstats			#Informacion de lectura y escritura que ha realizado cada dispositivo.
+			
+			-Procesos:
+		/proc/[PID]/*           #Carpetas con el numero de identificadores de procesos
+
+			-Kernel:
+		/proc/cmdline			#Parameters passed from the bootloader to the kernel
+		/proc/sys/*             #opciones dinámicas del kernel
+		/proc/sys/wm/swapiness	#cambiar la swapiness, para que cargue mas o menos procesos en la swap
+		/proc/kmsg				#Kernel MeSsaGe - Salida de los mensajes emitidos por el kernel. Estos también son redirigidos hacia syslog
+		/proc/kallsyms			#Tabla de símbolos para el kernel.
+		/proc/modules			#Módulos del núcleo que han sido cargados y su dirección.
+		/proc/version			#Version del kernel
+		
+			-Net:
+		/proc/net/*				#Información acerca del estado de los protocolos de red.
+		/proc/net/wireless		#Informacion sobre el interfaz de ref wifi
+		
+			-Misc
+		/proc/self/*			#Enlace simbólico al directorio /proc/[PID] del proceso que está accediendo a /proc. Conveniencia para facilitar a los programas autoreferenciarse
+		/proc/self/mounts		#Listado de todos los fs montados.
+
+
+		||--- SYS: ---||
+	
+	Sistema de archivos virtual creado por el programa sysfs. Es una evolucion de "/proc", donde se puede encontrar un tipo de informacion similar pero más estructurada.
+	
+	Más significativo en "/sys":
+	/sys/kernel/*
+	/sys/module/*
+	/sys/block/sd<X>/stat 				#como /proc/diskstat pero ordenado por discos 
+										#documented at https://www.kernel.org/doc/Documentation/block/stat.txt
+	/sys/block/sda/removable 			#Permitir Hotplug 0 -> NO hotplug 1 -> Hotplug 
+
+
+	echo - - - > /sys/class/scsi_host/host[N]/scan		#Escanear en busca de discos recien instalados. 
+														#N es el número de la controladora scsi
+														#echo - - - > Le mete un error a la controladora para que la recargue
+	
+
+		||--- DEV ---||
+	
+	Sistema de archivos virtual creado por el demonio udev. En él se crean archivos que son nodos entre los distintos dispositivos.
+	Más sigificativo en "/dev"
+	
+	/dev/sda	#Disco SCSI/SATA; sda,sdb,sdc,...por cada disco
+	/dev/sda1	#Partición en el disco sda;[1-4] son primarias/extendidas, 5+ son lógicas 
+	/dev/null	#El agujero negro. Todo lo que vaya aqui, desaparece.
+	/dev/zero	#permite sacar datos con valor null
+	/dev/random #permite sacar datos con valores aleatorios
+	/dev/cdrom	#CD-ROM
+	/dev/dvd	#dvd
+	/dev/stdin	#Entrada estandart
+	/dev/stdout	#Salida estandart
+	/dev/tty[1-63]  #diferentes terminales del sistema
+	/dev/ttyS[1-31] #no fucking idea, pero algo de las terminales	
+	/dev/disk/*	#Discos ordenados por sus diferentes caracteristicas(id,label,uuid,...)
+	
+
+
+	--------- FS:Sistemas de archivos regulares -------------------
+
+		||--- LIB:  ---||
+	
+	En este directorio se guardan las librerias compartidas (.so - shared libraries) a las que deben recurrir los diferentes procesos del sistema
+	
+	/lib/modules/* 							#lugar de almacenaje de los modules del kernel.
+
+	/lib/systemd/*							#Lugar de almacenamiento de las diferentes units de systemd
+	/lib/systemd/system/default.target		#Enlace simbolico hacia el target que se va a cargar de inicio
+	
+
+		||--- ETC:  ---||
+		
+	Archivos de configuracion del sistema y de las diferentes aplicaciones
+	
+		#Informacion del sistema
+	/etc/hostname			#cambiar nombre de la máquina
+	/etc/os-release         #Informacion sobre el sistema operativo
+	/etc/services			#Muestra todos los servicios disponibles en el sistema (esté o no esté instalado.), así como el puerto que usa y una breve descripción.
+	/etc/passwd				#Fichero de configuración de usuarios
+	/etc/shadow				#Fichero de configuración de contraseñas de usuarios
+	/etc/login.defs			#Login Defaults - Acciones a realizar por defecto cuanto un usuario se loguea?
+	/etc/fstab				#Tabla de configuración de puntos de montaje al inicio del sistema.
+	/etc/mtab				#Lista de puntos de montaje actual - Similar a la salida de "mount"
+	/etc/default/useradd	#Opciones por defecto para el comando useradd
+
+	/etc/modules.conf 		#Mapa de modulos que deben ser cargados en el arranque
+	
+	/etc/localtime			#Archivo binario 
+
+		#Shell
+	/etc/shells				#Shells disponibles en el sistema
+	/etc/nologin			#Evitar logueo en shell - Mejor que /bin/false ya que rechaza las conexiones y asegura ante DDoS
+	/etc/profile			#configuracion del entorno por defecto la shell - aqui se cambia el umask
+	/etc/profile.d/			#Modularizacion para el arranque
+	
+		#Inicio
+	/etc/default/grub		#
+	/etc/grub.d/*			#
+	/etc/inittab			#Configuración de arranque de SystemV, -Desactivar función ctrl+alt+sup - NO EN DEBIAN 8
+	/etc/init.d/*			#Directorio para scripts de inicio - estilo SystemD
+	/etc/init/*				#Directorio para scripts de configuracion de inicio - estilo SystemD
+	/etc/rc[1-6|S].d/*		#Scripts a cargar segun el runlevel, aqui se alojan enlaces simbolicos hacia los scripts de /etc/init.d/* que se quieran arrancar segun el runlevel	
+	/etc/default/*			#Configuraciones por defecto de diversos servicios del sistema
+	/etc/sysctl.con			#Cambiar configuración de inicio de diferentes parametros al inicio del sistema (forwarding, swapiness, varoles por defecto de sistema de archivos ...)
+	/etc/udev/rules.d/		#Cambiar el comportamiento por defecto de udev
+	/etc/systemd/*			#Configuraciones personalizadas por el usuario para SystemD
+	/etc/systemd/system/*	#Se define la configuración de de dependencias de los targets
+	
+		#Networking
+	/etc/resolv.conf			#direccion del servidor DNS, se modifica al vuelo si el interfaz está configurado como DHCP.
+	/etc/nsswitch.conf			#Prioridad de servicios de resolucion de DNS(campo hosts), además Configuraciones de servicios de dominio, y otras muchas cosas;
+	/etc/hosts.allow			#direcciones a resolver de nombre internos - usado por tcpd
+	/etc/hosts.deny				#direcciones a resolver de nombre internos - usado por tcpd
+	/etc/network/interfaces		#Definir los interfaces de red y su configuración, puede estar sobreescrito por el paquete "network-manager" en caso de que esté instalado el paquete
+	/etc/network/interfaces.d/	#Directorio para crear una configuracion modular
+	/etc/xinetd.conf			#Archivo de configuración del demonio xinetd
+	/etc/issue.net				#Mensaje en el login prompt de conexiones telnet
+	/etc/aliases				#diferentes alias de las cuentas de correo, se pueden hacer redirecciones entre usuarios etc.
+
+		#udev Daemon
+	/etc/udev/udev.conf					#Configuracion del servicio udev
+	/etc/udev/rules.d/*					#Directorio donde se almacenan las reglas de udev
+										#Ejemplo: SUBSYSTEM=="net", ACTION=="ADD", DRIVERS="?*", ATTR{address}=="00:21:86:9e:c2:c4", ATTR{type}=="1", KERNEL="eth*", NAME=="eth0" --> Esta regla de da al dispositivo con la mac 00:... el nombre eth0 cuando lo detecte.
+
+	
+		#X Window Server
+	/etc/X11/*							#Directorio de configuracion de X
+	/etc/X11/xorg.conf					#Archivo de configuracion de dispositivos de video, pantalla,...
+	/etc/X11/default-display-manager	#Configura que Display Manager se va a arrancar por defecto
+	
+		#Servicios y programas
+	/etc/alternatives/*		#Directorio cone enlaces de nombre sencillo que apuntan a la ruta de un ejecutable en concreto - Creo que se manejan con "update-alternatives" Ejemplo: java -> /usr/lib/jvm/java-8-oracle/jre/bin/java	
+	/etc/modprobe.conf		#Configuración de modprobe
+	/etc/modprobe.d/*		# ""
+
+	/etc/ls.so.conf			#include de los archivos del directorio homonimo
+	/etc/ls.so.conf.d/*		#scripts donde se localizan las librerias
+
+	/etc/apt/sources.list		    #Rutas a los repositorios de Debian
+	/etc/apt/sources.list.d/*	     #Modularizacion de las rutas a los repositorios
+    /etc/apt/trusted.gpg            #Keyring of local trusted keys, new keys will be added here.
+    /etc/apt/trusted.gpg.d/      #File fragments for the trusted keys, additional keyrings can be stored here (by other packages or the administrator).
+       
+	/etc/yum/repos				#Rutas a los respositorios de Red Hat
+	/etc/yum.repos.d/			#Directorio para modularizar las rutas a los respositorios de Red Hat
+	
+	/etc/manpath.config		#Configuracion de localizcion de ficheros de man
+	/etc/updatedb.conf		#configuracion de la base de datos del comando locate
+
+	/etc/at.allow		#Lista blanca de usuarios que pueden usar at
+	/etc/at.deny		#Lista negra de usuarios que pueden usar at
+
+	/etc/crontab
+	/etc/cron.d/
+	/etc/cron.hourly/
+	/etc/cron.daily/
+	/etc/cron.weekly/
+	/etc/cron.monthly/
+	/etc/cron.allow		#No estan por defecto. Lista blanca de usuarios que pueden usar cron
+	/etc/cron.deny
+	
+	/etc/ssh/*
+	/etc/ssh/ssh_config		#Configuraciones del cliente de SSH
+	/etc/ssh/sshd_config		#Configuraciones del servidor de SSH
+	
+	/etc/sudoers		#fichero de configuracion de SUDO
+	/etc/sudoers.d/		#Directorio de autoload para configuraciones de SUDO
+	
+	/etc/cups				#Directorio maestro de archivos de configuracion de CUPS
+
+	
+	  ||--- VAR: ---||
+	
+		/var contiene datos que cambian cuando el sistema se ejecuta normalmente. Es específico de cada sistema y no se comparte
+	
+	/var/run/*			#Archivos con información de la ejecución del sistema (PID,...)
+	
+	/var/lock/*			#Archivos de bloqueo - Convención para indicar que un archivo se encuentra bloqueado e impedir su acceso.
+	
+	/var/cache/*		#Cache generada por diferentes servicios
+	/var/cache/man
+	/var/cache/cups
+	/var/cache/lightdm
+	
+	/var/log/*				#Aquí se coloca la informacion de logs
+	/var/log/messages		#Log para la depuración del kernel
+	/var/log/maillog		#Log de "mail"
+	/var/log/dmesg
+	/var/log/syslog
+	
+	/var/lib/apt/lists		#Directorio de descargas de las listas de paquetes de los repositorios 
+					#Se pueden arreglar manualmente los repositorios que tengan arhivos de listas que no corresponden con los paquetes 
+	
+	/var/spool/*					#Contiene directorios para los diferentes programas que necesiten trabajar con colas
+	/var/spool/cron/*				
+	/var/spool/cron/<username>			
+	/var/spool/exim/
+	/var/spool/cups/
+	
+	/var/tmp/*			#Archivos temporales que necesitan una existencia más larga que la del directorio /tmp
+	/var/run/utmp		#Informacion de las sesiones iniciadas (binario)
+	
+		||--- BIN ---||
+	
+	/bin/false		#Denegar shell, abre conexion en intento de login antes de rechazarlo, vulnerable a DDoS
+	
+	
+		||--- BOOT ---||
+		
+	/boot/vmlinuz-<kernel-version>		#Imágen del kernel?
+	/boot/initrd.img-<kernel-version>	#Imágen del ramdisk
+	/boot/config-<kernel-version>		#Configuracion del kernel ya instalado
+	
+	/boot/grub/grub.cfg 	#Fichero de configuracion de GRUB2 - N
+							#No se modifica en este fichero, sino los scripts modulares que lo componen:
+							#	/etc/default/grub
+							#	/etc/grub.d/*
+	/boot/grub/menu.lst		    #Fichero de configuracion de GRUB LEGACY (otras distros es .configuración)
+	/boot/grub/devices.map		#contiene un mapeo de los dispositivos - para GRUB LEGACY
+	
+	
+	
+		||--- USR: ---||
+		
+		Directorio de instalación del software que no es imprescindible para arrancar el sistema
+		
+	/usr/bin/						#Binarios de sistema accesibles por todos los usuarios
+	/usr/sbin/						#Binarios de sistema accesibles por root
+
+	/usr/lib/						#Librerias que requieren los diferentes programas instalados
+	/usr/lib/systemd/system/		#unidades distribuidas con paquetes RPM instalados.
+	
+	/usr/lib32/						#Librerias correspondientes a la arquitectura
+	/usr/lib64/						#Librerias correspondientes a la arquitectura
+	/usr/libx64/					#Librerias correspondientes a la arquitectura
+
+	/usr/local/						#Instalación de software que no queremos que se pise al actualizar el sistema
+
+	/usr/share/*					#Archivos publicos de las aplicaciones (jsons, textos parametros,menus...)
+	/usr/share/man					#documentacion del man
+	/usr/share/info					#documentacion del info
+	/usr/share/doc					#Documentacion extra (changelog,TODO,..)
+	/usr/share/zoneinfo/*			#Directorio que alberga los diferentes archivos de configuracion de zonas horarias
+	/usr/share/misc/pci.ids			#Relacion de IDs y de Nombres de fabricantes PCI, usado por lspci
+
+	/usr/src							#Codigo fuente de los programas
+	/usr/src/linux						#Directorio por defecto para las fuentes de código
+	/usr/src/linux/Documentation		#Directorio de la documentacion
+	
+	
+		||--- HOME: ---||
+		
+		Directorio con las carpetas personales de los usuarios.
+		
+	/home/<username>/*					#Directorio que contiene los archivos propios de cada usuario.
+	/home/<username>/.bashrc			#Configuracion de la shell lanzada por un usuario en particulas
+	/home/<username>/.bash_profile		#Configuracion de la shell lanzada por un usuario en particulas
+	/home/<username>/.bash_login
+	/home/<username>/.bash_logout
+	
+	/home/<username>/.gnupg/*			#Archivos de configuración y Key Rings de GPG para un usuario
+		//--- lost+found ---//
+	En este directorio se referencian los ficheros sin enlazar encontrados por fsck
+	
+
+		||--- RUN: ---||
+		
+	/run/systemd/system/ 				#unidades creadas en tiempo de ejecución. Tiene precedencia sobre el directorio anterior.
+	
+***
+NFS - Network File System
+***	
+
+NFS no permite acceso root por defecto.
+
+---Files
+	/etc/exports	Para definir permisos de usuarios
+
+---Comandos
+	exportfs -a		#Aplicar cambios en /etc/exports sin interrumpir a los usuarios	
+
+
+*************	
+OBSERVACIONES:
+*************
+
+	-Encontraremos un ciento de archivos redundantes, de hecho, una gran cantidad de enlaces, que para algo están. Esto sucede muchas veces por respetar el LEGACY a la vez que se hacen reestructuraciónes con las diferentes actualizaciones.
+	-Utiliza SWAP para hibernar el sistema
+	-Un VFS(Virtual File System) es una capa de abstracción sobre un sistema de archivos preexistente que permite montar cualquier otro tipo de sistema de archivos sobre este.
+	

@@ -1,0 +1,353 @@
+*********************************
+*  BASH - SELL SCRIPTS (105.1)  *
+*********************************
+
+Para partir una linea en varias se usa "\" al finalde la linea
+echo \
+"hola";
+
+***********
+VARIABLES:
+***********
+NOMBRE="DIEGO"; #solo para la shell actual
+echo $NOMBRE; #Imprimir una variables
+export NOMBRE; #exportar la variable al resto de shells
+env #ver todas las variables del entorno
+	-u #unset con este parametro se
+unset NOMBRE; #Borrar variable
+alias <alias>='<comando>' # alias ll='ls -la -color=auto'
+
+read <variable> #leer variables en tiempo de ejecución
+	-p "<texto>"	#Promt, muestra un texto antes de pedir el valor
+	-n <number>		#numero de caracteres a leer en el promt del read
+	-r 				#???????????	
+	-s	#no mostrar el texto que escrito por el usuario
+
+	#Ejemplo.
+echo "Di un número";
+read a
+echo "El numero es 
+
+	###--- Declaracion de variables ---###
+
+set									#Set or unset values of shell options and positional parameters. --- ¿¿¿Using `+' instead of `-' turns off the given attribute???
+	-o <opcion>						 
+		vi							#Cambiar EMACS keysrokes por VI
+		emacs						#Cambiar VI keysrokes por EMACS
+		noclobber					#Evitar sobreescritura de archivos al hacer redirecciones
+	-a|	allexport					#Mark variables which are modified or created for export.
+	-m|	noexec						#Read commands but do not execute them.
+	-f|	noglob						#Disable file name generation (globbing).
+	-b| notify						#Notify of job termination immediately.
+	-v| vervose						#Print shell input lines as they are read.
+		etc...
+
+declare <variable[=value]>		#Declarar una variable ---   Using `+' instead of `-' turns off the given attribute.
+		-i <variable[=value]>	#declara como integer
+	    -a <variable[=value]> 	#Declara un array indexado		
+	    -A <variable[=value]> 	#Declara un array asociativo		
+	    -r <variable[=value]> 	#Declara una variable inmutable (Read Only)
+		-x       				#to make NAMEs export
+		-f						#Functions - Imprimir las funciones declaradas
+
+shift	#Desplazar a la siguiente posicion de un array en un bucle while??		
+		
+	###--- Expansion de variables y comandos ---###		
+
+http://www.gnu.org/software/bash/manual/bashref.html#Shell-Parameter-Expansion
+
+<comando1> ` <comando2>	#Expansion de comandos. Similar a "xargs", le pasa como parametros del <comando1> la salida del <comando2>
+´<comando>´		#Expansion de comandos. Solo comandos no scripts. Si se quieren ejecutar scripts dentro de scripts se utiliza exec o sh.
+$(<comando>)	#Expansion de comandos. Solo comandos no scripts. Si se quieren ejecutar scripts dentro de scripts se utiliza exec o sh.
+${<parametro>}	#Expansion de parametros
+${<parametro>:<offset>:<length>}	#Expansion de parametros con corte por substring
+${!var}			#Expansion de variables
+	Ejemplo:
+	var = 1;
+	echo ${!var}	#mostrará el valor del primer argumento del comando, este comando sería equivalente a hacer echo $1
+${!array[*]}		#Expansion de los indices (de los arrays asociativos...)
+$(( expression ))	#Expansion aritmética, de esta forma se ev´lúa la expresion
+$'string'           #$'' strings use ANSI C Quoting
+
+	
+***********
+Variables Especiales:
+***********
+
+Los parámetros que se le pasan al script entran en variables reserbadas numeradas por la posición del argumento
+$0				#Nombre del comando
+$1 ,$2 ,$3 ,... #argumento 1, argumento 2, argumento 3, ...; Estas variables son globales para todo el script
+$@ 				#todos los argumentos
+$#				#numero de argumentos
+$?				#Valor de salida de ejecucion del ultimo comando
+$$  			#Id de ejecucion de la shell actual
+$!				#PID del ultimo comando en background
+
+
+***********
+Ejecución de scripts.
+***********
+
+Ejecutar scripts desde el promt
+	sh <script.sh>		#Ejecutar en subshell
+	./	<script.sh>		#Ejecutar en subshell
+
+	
+	source <script.sh>	#Ejecutar en la propia shell, sería como un require.
+	.<script.sh>		#Ejecutar en la propia shell, sería como un require.
+
+Ejecutar scripts dentro de un script
+	exec <script.sh>	#ejecuta es script en la misma shell
+	sh <script.sh>		#ejecuta el script en una subshell
+
+
+************	
+Archivos de configuracion de bash:
+************
+
+Globales
+/etc/profile
+/etc/profile.d
+/etc/bashrc
+
+De usuario
+~/.bash_login
+~/.bash_profile
+~/.bashrc
+~/.bash_logout
+
+************
+Estructura de un script
+************
+
+Los scripts son ficheros de texto con comandos, la primera linea es el shebang, que es una convencion en la que se declara la shell que debe interpretar el resto del script 
+Así--> #!bin/bash
+Hay que tener en cuenta cuando se lanzan subshells ya que no tendrán las variables locales definidas
+
+
+************
+OPERACIONES ARITMÉTICAS
+************
+
+let		#utiliza variables como números
+expr	#realiza calculos directamente
+bc		#permite el uso de decimales con "scale=x"(x es el número de decimales; precisión) o con -l
+
+Ejemplos:
+expr 3+4	#7
+resultado = `expr 3+4`
+
+echo "3+4"|bc -l	#7
+echo "5/10"|bc		#0, trunca la parte decimal
+echo "5/10"|bc -l		#.5000000000000000, muestra la parte decimal
+echo "scale=3;5/10"		#.500	muestra la parte decimal y la trunca según el valor de scale
+
+También se le puede decir a bash que una variable debe ser tratada como un valor numerico con:
+typeset -i <variable> || declare -i <variable>
+
+
+
+Pese a todo hay una especie de forma universal para ejecutar operaciones que es $((<operacion>))
+Ejemplos:
+$((1+1))	#2
+$((1%2))	#1	
+$((i++))	#incrementa la variable i en 1
+
+************
+Arrays:
+************
+
+	Asignacion:
+
+		ciudad[1] = "Madrid";
+		ciudad[2] = "Roma";
+		ciudad[3] = "Berlín";
+		
+		---Asignación directa:
+		
+		ciudad=("Madrid" "Roma" "Berlin");
+		
+	Mostrar:
+		
+		echo ${ciudad[1]}; #Madrid
+		echo ${ciudad[*]}; #Madrid Roma Berlín
+		
+		Importante, no es lo mismo usar "@" que "*" en los []. Ya que "*" separará el elemento por espacios y "@" tratará el contenido de la variable como si un único string.
+		
+	Arrays Asociativos (Bash >4):
+		(http://www.linuxjournal.com/content/bash-associative-arrays)
+
+	Para declarar un array asociativo es necesario declarar antes la variable con el comando "declare -A <variable>". A partir de este momento esa bariable aceptará entre los corchetes cadenas de caracteres.
+	
+		ciudad[Madrid] = "Madrid";
+		ciudad[Roma] = "Roma";
+		ciudad[Berlin] = "Berlín";
+		
+		---Asignación directa:
+		
+		ciudad=([Madrid]="Madrid" [Roma]="Roma"· [Berlin]="Berlin");
+		
+	Mostrar:
+		
+		echo ${ciudad[Madrid]}; #Madrid
+		echo ${ciudad[*]}; #Madrid Roma Berlín, cada espacio es un valor
+		echo ${ciudad[@]}; #Madrid Roma Berlín, trata a los valores como strings
+
+		para imprimir las keys de los arrays
+		
+		echo ${!ciudad[*]}; #Madrid Roma Berlín (En este caso coinciden porque son las mismas).
+	
+	
+
+	Operadores en arrays:
+	Para anexar un elemento extra al array o concatenar podemos acerlo con "+="
+	
+	Iterar Arrays Asociativos:
+	for key in "${!array[@]}"
+	do
+	  echo "key :" $key
+	  echo "value:" ${array[$key]}
+	done
+	
+************
+Condiciones:
+************
+
+	Estructura IF
+	if	<comparacion>
+	then
+	[else]
+	[elif]
+	fi
+
+	Comparaciones
+		[]		#equivalente al comando test 
+				Ejemplo:
+				[ "$a" -gt "$b" ]	#compara si el valor de la variable $a es mayor que el de la variable $b
+			
+		[[]] 	#equivalente al comando test, necesarios los dos corchetes para cuando hay más de una condicion o expresiones regulares
+		(())	#no se a que es equivalente pero va muy bien para operaciones aritméticas, no funciona en POSIX
+		
+	-Comparadores
+		&&
+		||
+		=
+		==
+		=!
+		<
+		>
+		=~	#comparador de expresiones regulares para strings
+		
+	Existe el comando test que tambien evalua comparaciones, dentro de los scripts se puede invocar con [], este comando tiene una serie de parametros para comprobar cosas habituales. Despues de la condicion es necesario poner un ";" 
+	-e: exist
+	-f: si el archivo existe
+	-s si el archivo existe y es mayor de 0
+	-lt #comparar numeros
+	-gt #comparar numeros
+	-ie #comparar numeros
+	-eq	#comparar numeros
+	-...
+
+	-Ejemplo:
+		if[ -s <ruta>];
+		then
+			echo "<ruta> encontrada; cerrando!"
+		exit
+		fi
+		
+	Estructura CASE:
+		case $VAR in
+			OPCION1)
+			;;		#break
+			OPCION2)
+			;;		#break
+			OPCION3)
+			;;		#break
+			OPCION4 | OPCION5)	#Multples opciones para un mismo caso
+			;;		#break
+			*)		#Default
+			;;
+		esac
+	
+	Estructura SELECT:
+
+		select VAR in LISTA_VAR
+		do
+		case $VAR in
+			"OPCION1")
+			;;		#break
+			"OPCION2")
+			;;		#break
+			"OPCION3")
+			;;		#break
+			*)		#Default
+			;;
+		esac
+		done
+
+	Select tiene la variable especial PS3 en la que se define el prompt del select.
+	Ejemplo;
+		PS3=¿Qué opcion deseas realizar? 
+		
+	Estructura GETOPTS
+		Nos permite especificar modificadores para nuestro script 
+	
+		while getopts "abc" opts
+		do
+		case $opts in
+		a) <comando> ;;
+		b) <comando> ;;
+		c) <comando> ;;
+		esac
+		done
+	
+	
+		
+*********
+Iteraciones
+*********
+
+	-FOR	#por cada, recorre una lista introduciendo la variable en el bucle
+		for <variable> in <lista_de_valores>;
+		do
+			<comandos>
+		done		
+
+		Comandos Útiles:
+			seq [<first>] [<increment>] <last>	#crea una secuencia
+		
+		
+	-WHILE	#MIENTRAS, entra mientras la condición se evalua como true
+		while [condicion];
+		do
+			<comandos>
+		done
+
+
+        --Combinacion de WHILE y READ:
+        cat filename | while read LINE
+        do
+            echo $LINE
+        done
+
+	-UNTIL	#HASTA QUE, entra mientras la condición se evalua como false
+
+		until [condicion];
+		do
+			<comandos>
+		done
+	
+	
+
+**********
+Funciones
+**********
+    Declaracion de una funcion:
+
+	nombre_funcion(){
+		<comandos>
+	}
+
+    Llamadas a funciones, las llamadas a funciones deben incluirse despues de la declaracion de la función:
+
+    nombre_funcion [<param> <param2> <...>]; 

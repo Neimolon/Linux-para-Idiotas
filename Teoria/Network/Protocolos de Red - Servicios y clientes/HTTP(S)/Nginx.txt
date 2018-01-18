@@ -1,0 +1,35 @@
+*********
+* NginX * 
+*********
+
+NginX es un servidor web/proxy inverso ligero de alto rendimiento.
+
+Características:
+	• Servidor de archivos estáticos, índices y autoindexado.
+	• Proxy inverso con opciones de caché.
+	• Balanceo de carga.
+	• Tolerancia a fallos.
+	• Soporte de HTTP sobre SSL.
+	• Soporte para FastCGI con opciones de caché.
+	• Servidores virtuales basados en nombre y/o en dirección IP.
+
+	
+El proxy inverso:
+
+	- Cuando un proxy nginx recibe una solicitud, envía la solicitud a un servidor especificado, obtiene la respuesta, y envía dicha respuesta de vuelta al cliente.
+
+	- Es posible enviar peticiones a un servidor HTTP, o un servidor no HTTP (puede ejecutar aplicación PHP/Python/...) utilizando un protocolo especificado (FastCGI, WSGI, SCGI y memcached)
+
+	- Para aprobar una solicitud a un servidor HTTP proxy, se especifica la directiva proxy_pass.
+
+	
+********	
+Comandos
+********
+
+	nginx	
+		-t				#Test - Comprueba la sintaxis de la configuración
+		-s <signal>		#Signal [start|stop|reload|reopen]- Le pasa la señal al proceso maestro
+		-v				#Version - Muestra la version
+		-V				#Version - Muestra la version y las opciones de configuracion
+		-c <conf_file>	#Config - Lanza NginX cargando la configuracion de un archivo deteminado

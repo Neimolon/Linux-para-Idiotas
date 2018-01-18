@@ -1,0 +1,173 @@
+*************
+* EL KERNEL *
+*************
+	-El kernel de Linux es el responsable de la gestión del hardware.
+
+	-El kernel de Linux fue diseñado originalmente para ser un núcleo monolítico (contienen todos los controladores para todos tipos de hardware soportado, sin importar si el sistema utiliza ese hardware). Actualmente, el kernel tiene una estructura modular y sólo se cargan en memoria los módulos necesarios para el correcto funcionamiento del sistema.
+
+	-Compresion del kernel:
+		Cuando se almacenan en el disco, la mayoría de las imágenes del kernel se comprimen para ahorrar espacio. Hay dos de tipos de compresión de kernel:
+			-zImage: tiene un tamaño máximo de 520KB (Loaded into low memory). - En gzip
+			-bzImage: no tiene límite de tamaño, preferido para los kernel grandes (Loaded into high memory). en gzip (el bz del nombre viene de "big zImage" no del algoritmo de compresion)
+
+	-Nomenclatura:
+		El kernel de Linux lo encontramos en un archivo denominado "vmlinuz-A.B.C-D" dentro de la partición /boot.
+		
+		Hay tres esquemas diferentes para numeración de versiones:
+			• Hasta 2.6.0:
+				A Major release
+				B Minor release (PAR: Estable / IMPAR: Desarrollo)
+				C Patch level
+			• Desde 2.6.0 hasta 3.0 (ciclo de lanzamiento basado en el tiempo):
+				C Incrementado cada 2 o 3 meses.
+				D Solución de bugs e incidencias de seguridad.
+			• Versión 3.0 (creada en honor del 20 aniversario de Linux):
+				B Version Number
+				C Patch level.
+
+	-Componentes del Kernel:
+		- El corazón del Kernel:
+		
+		- Los módulos:
+
+		- Ramdisk:
+			- Disco virtual creado en memoria que contiene el conjunto de módulos.
+			- Se utiliza para acelerar la fase de detección del hardware y la carga de módulos asociada 
+			- se genera una vez se ha compilado el kernel y se llama directamente desde el gestor de arranque.
+
+			
+	-El demonio "Kmod" y "Kerneld":
+		Kmod y Kerneld preveen la carga dinámica de módulos del kernel, usan modprobe para manejar las dependencias y cargas dinámicas.
+			• Kmod: 
+				- Es un hilo del propio kernel y opera con el propio kernel.
+				- Reemplaza a Kerneld en Linux Kernel 2.2.X
+				- Para habilitar el uso de kmod, el kernel debe ser compilado con la opción CONFIG_KMOD habilitada. 
+				- Debido a kmod se implementa como un módulo del kernel, y dicho módulo debe ser habilitado también.
+			• Kerneld: Es un daemon y se comunica con el kernel a través de System V IPC.
+
+	-El demonio "udev":
+		Fue diseñado para hacer más flexible y seguro el manejo de dispositivos.
+		
+		Consiste en un daemon udevd el cual recibe “uevent” desde el kernel. La comunicación se realiza mediante el sistema de ficheros virtual /sys.
+		
+		El fichero de configuración es /etc/udev/udev.conf.
+		
+		El directorio donde se almacenan las reglas del usuario se encuentra en /etc/udev/rules.d.
+			Ejemplo de Reglas:
+				SUBSYSTEM=="net", ACTION=="ADD", DRIVERS="?*", ATTR{address}=="00:21:86:9e:c2:c4", ATTR{type}=="1", KERNEL="eth*", NAME=="eth0"
+
+	
+**********************
+* Parchear el Kernel * 
+**********************
+
+	Consiste en realizar cambios sobre las fuentes de un kernel para ahorrar tiempo de descarga, obtener nuevos drivers.
+	
+	Se debe obtener un arhivo "patch-<version>.[gz|bz2]" del sitio oficial de kernel.org u otro repositorio oficial
+	
+	Los parches se aplican a la version inmediatamente precedente del kernel.
+	
+	
+	Para aplicar un parche:
+	
+		1º Descargar el parche inmediatamente superior a la version del kernel a actualizar
+		
+		2º Cambiar al directorio fuente actual de linux
+		
+		3º Aplicar el parche descargado:
+			
+			a) Manualmente:	
+				<[gzip|bzip2]> -dc /path/to/patch/patch-<version>.[gz|bz2] |patch pl	#Descomprimimos el parche y lo aplicamos con "patch"
+				
+				En caso de haber problemas se pueden revertir los cambios con la opcion -R de patch. También se usa en caso de querer actualizar un kernel que ya tiene modificaciones.
+				
+				<[gzip|bzip2]> -dc /path/to/patch/patch-<version>.[gz|bz2] |patch pl -R	#Revertir
+			
+			b) Con script:	
+				/usr/src/<kernel-version>/scripts/patch-kernel <kernel-dir>		#Este comando busca parches en el directorio actual y los aplica en <kernel-dir>
+
+
+		
+**************************
+* Compilación del Kernel *
+**************************
+
+	Actualmente es muy raro tener que compilar un kernel a mano, ya que esta operacion se suele gestionar con los programas de paquetería de linux. Pero pueden existir casos en los que sea necesario compilarlo con módulos que ya no se incluyan.
+	
+	En caso de forzosamente tener que compilarlo, la forma más simple es la siguiente:
+	
+	1º - Obtener el kernel:
+			Se puede descargar cualquier version del kernel de kernel.org o podemos coger un kernel modificado
+
+	2º - Descomprimir el kernel en la carpeta destino (/usr/src)
+			tar -xvjf <ruta_origen> -C <ruta_destino> 
+	
+	3º - Copiamos la configuracion del kernel actual a la carpeta la carpeta destino
+			Este es un paso opcional que nos permite  ahorramos tener que configurar una infinidad de parámetros que muchas veces se refieren a información de hardware muy especifica de nuestra máquina (Módulos para buses,...)
+				cp /boot/config-2.6.18-8.el5 .config 
+	
+	4º - Compilar el ".config" del kernel
+			Existen varias formas de compilar el archivo de configuración que le dirá al comando "make" que debe compilar del kernel:
+				make config			#Se nos va a preguntar cada opción desde una shell interactiva, útil si no tenemos una configuracion base. 
+				make menuconfig		#Se nos permite modificar las opciones de configuración del kernel desde un menú en la shell.
+				make xconfig		#Lanza una ventana de X con un menú con las opciones del kernel.
+				make oldconfig
+				make silentoldconfig
+				
+			Es importante hacer notar que en la seleccion de elementos que deben conpilarse en el kernel se pueden instalar los elementos como Modulos (se cargan a traves de modprobe, insmod, o el sistema plug&play) o como Monolíticos (Se empotran en el kernel y se cargan siempre que se arranca)
+	
+	5º - Compilar el kernel
+			make [all]				#Compila el kernel (sin modulos) y lo pone en el directorio de arranque (/boot/)
+			make modules_install	#Compila los modulos (.ko) del kernel y los mete en el direcotios de los modulos (/lib/modules/<kern_vers>/kernel/)
+			make install			#Actualiza grub incluyendo el nuevo kernel, dejandolo disponible para seleccionar en el menú de arranque.
+	
+
+	Nota: En el PDF correspondiente al tema 201 hay un procedimiento mas "manual" para compiar el kernel con los siguientes pasos:
+		1 - Obtención de fuentes
+		2 - Limpieza del kernel
+		3 - Generación del archivo de configuración
+		4 - Compilación del kernel y de los módulos
+		5 - Instalación de módulos
+		6 - Instalación del kernel
+		7 - Creación del Ramdisk
+		8 - Configuración del gestor de arranque
+
+		
+	****************************************************
+	Establecer opciones de configuración de compilación
+	****************************************************
+	
+		En caso de querer realizar una instalacion del kernel optimizada se deberán modificar manualmente las opciones correspondietes con alguno de los objetivos de make manuconfig,xconfig o gconfig
+		
+		Las opciones se dividen en categorías que tienen subcategorías que se expanden bajo ellas. También se ofrecen notas explicativas sobre cada opción.
+		
+		Categorías principales de las opciones:
+			- Instalación general
+			- Permitir la capa de bloqueo
+			- Tipos y funciones del procesador
+			- Opciones de administración de energía y ACPI
+			- Opciones de bus (pci,...)
+			- Emulaciones/Formatos de archivo ejecutables
+			- Soporte de red
+			- Drivers de dispositivos
+			- Sistemas de archivo
+			- Pirateo del kernel
+			- Opciones de seguridad
+			- API criptográfico
+			- Virtualización
+			- Rutinas de bibliotecas
+			
+		Funciones especialmente importantes:
+			- Configuración general > Version local
+			- Configuración general > Soporte del Sistema de archivos del RAM inicial y disco inicial (initram/initrd)
+			- Configuración general > Habilitar soporte de modulos cargables
+			- Tipo y funciones del procesador > Soporte simétrico de multiproceso
+			- Tipo y funciones del procesador > Facilia del procesador
+			- Tipo y funciones del procesador > Soporte de alta memoria
+			- Soporte de redes > Redes TCP/IP
+			- Soporte de redes > Opciones de redes > Dispositivos inalámbricos
+			- Drivers de dispositivos > Soporte del dispositivo SCSI
+			- Drivers de dispositivos > Drivers de SATA y PATA
+			- Drivers de dispositivos > Soporte del driver de dispositivos multiples 
+			- Drivers de dispositivos > Soporte gráfico
+			- Drivers de dispositivos > Soporte USB

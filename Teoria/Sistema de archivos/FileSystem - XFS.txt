@@ -1,0 +1,191 @@
+**********************
+* XFS  - Laboratorio *
+**********************
+
+XFS es un sistema de archivos de 64 bits con registro por diario (journaling) de altorendimiento y altamente escalable creado por SGI (antes Silicon Graphics Inc.) susistemas operativo IRIX. En mayo de 2000, SGI publicó XFS bajo una licencia decódigo fuente abierto.
+
+El núcleo de Linux incluye soporte para XFS desde la versión 2.4.25. Desde entonces ha sido incluido en la mayoría de las distribuciones de GNU/Linux enfocadas sobre servidores. Es el sistemas de archivos predeterminado de CentOS 7 y Red Hat™ Enterprise Linux 7.
+
+Las principales funciones de XFS incluyen:
+	- Registro por diario para metadatos, lo cual permite una recuperación de datos más rápida.
+	- El sistema de archivos puede defragmentarse y agrandarse mientras está montado y activo.
+	- En el caso de CentOS 7, Red Hat™ Enterprise Linux 7 y distribuciones derivadas de éstos se incluye soporte para herramientas de respaldo y restauración específicas de XFS.
+	
+	
+*******************	
+* Procedimientos. *
+*******************	
+
+	- Creación de sistema de archivos XFS.
+	
+		Ejecute mkfs.xfs con la ruta del dispositivo de la partición a utilizar como argumento para dar formato XFS a cualquier partición. 
+			
+			Ejemplo: mkfs.xfs /dev/sdf1
+
+		Ejecute lo siguiente para obtener más detalles y descripción de otras opciones:
+		
+			man 8 mkfs.xfs
+
+	- Montaje de particiones con formato XFS.
+	
+		El montaje se realiza igual que con otros sistemas de archivos ejecutando mount y usando como argumentos para éste la ruta del dispos tivo de la partición y el directorio a utilizar como punto de montaje. 
+		
+			Ejemplo:				mount /dev/sdf1 /mnt/xfs
+				
+		De modo predeterminado XFS utiliza la opción relatime para reducir los ciclos de escritura innecesarios sobre el sistema de archivos. XFS utiliza las mejores opciones disponibles para optimizar el rendimiento del sistema de archivos. Se recomienda dejar todo con valores predeterminados, es decir sólo utilizar las opciones predeterminadas. 
+
+	- Agrandar el sistema de archivos.
+	
+		XFS dispone de una herramienta para agrandar el sistema de archivos denominada xfs_growfs. Funciona de modo similar a como resize2fs lo hace para Ext3/Ext4.
+
+		Si se utiliza xfs_growfs sin más argumentos que la ruta del dispositivo correspondiente a la partición a agrandar, se asignará el máximo del tamaño disponible en la unidad de almacenamiento o volumen lógico. 
+		
+			Ejemplo:
+				
+				xfs_growfs /dev/sdf1
+
+		Se pude utilizar la opción -D para indicar la cantidad de bloques a utilizar para crecer el sistema de archivos. 
+		
+			Ejemplo:
+				xfs_growfs 1048576 -D /dev/sdf1
+
+		El sistema de archivos se puede hacer crecer con la partición activa y montada. Cabe señalar que XFS carece de soporte para reducir el tamaño del sistema de archivos.
+		
+	La única forma de poder reducir un sistema de archivos XFS sería respaldar éste con xfsdump, volver a formatear con mkfs.xfs y restaurar con xfsrestore.
+
+	Ejecute lo siguiente para obtener más detalles y descripción de otras opciones:
+		
+		man 8 xfs_growfs
+
+	- Reparar sistema de archivos.
+
+		Para poder verificar el sistema de archivos es importante recordar que éste debe estar inactivo y sin montar.
+
+		La reparación del sistema de archivos se debe realizar ejecutando xfs_repair con la ruta del dispositivo a verificar como argumento. 
+			
+			Ejemplo:
+				
+				xfs_repair /dev/sdf1
+
+		Si se trata de un caso donde el sistema inicia en modo de sólo lectura y se requiere reparar sistema de archivos, puede utilizarse xfs_repair con la opción -d. Ejemplo:
+
+			xfs_repair -d /dev/sdf1
+
+
+		Cabe señalar que xfs_repair carece de capacidad para verificar bloques dañados. Los desarrolladores de XFS asumieron que era innecesario añadir el soporte pues se esperaba que la detección de bloques dañados se hiciera automáticamente en la unidad de almacenamiento, como ocurre con las unidades SCSI/SAS.
+
+		Ejecute lo siguiente para obtener más detalles y descripción de otras opciones:
+		
+			man 8 xfs_repair
+
+		Si lo considera necesario, para verificar los bloques dañados se puede ejecutar badblocks utilizando la ruta del dispositivo a reparar como argumento. 
+		
+			Ejemplo:
+			
+				badblocks /dev/sdf1
+
+		Puede ejecutar lo anterior pero añadiendo la opción -n si requiere hacer una verificación de lectura y escritura no-destructiva. 
+			
+			Ejemplo:
+
+				badblocks -n /dev/sdf1
+
+		Ejecute lo siguiente para obtener más detalles y descripción de otras opciones:
+
+			man 8 badblocks
+
+		Cabe señalar que tanto fsck como fsck.xfs serán incapaces de realizar las funciones dexfs_repair.
+		
+	- Defragmentación de sistema de archivos.
+
+		La defragmentación se puede realizar con toda seguridad con el sistema de archivos activo y montado. Se utiliza la herramienta xfs_fsr con la ruta del dispositivo de la partición deseada. 
+		
+			Ejemplo:
+		
+				xfs_fsr /dev/sdf1
+
+	- Respaldo y restauración de sistema de archivos.
+
+		Al igual que Ext3/Ext4 disponen de dump y restore, XFS dispone de xfsdump y xfsrestore. Ambas están diseñadas para funcionar específicamente con unidades de cinta.
+
+		Ejecute lo siguiente para realizar el respaldo completo (-l 0) de /cualquier/ruta en una unidad de cinta /dev/st0:
+
+			xfsdump -l 0 -f /dev/st0 -L session_201503192130 -M respaldo_1 /cualquier/ruta
+
+		Ejecute lo siguiente para realizar un primer respaldo incremental de /cualquier/ruta:
+
+			xfsdump -l 1 -f /dev/st0 -L session_201503192230 -M respaldo_1 /cualquier/ruta
+			
+		Ejecute lo siguiente para realizar un segundo respaldo incremental de /cualquier/ruta:
+
+			xfsdump -l 1 -f /dev/st0 -L session_201503192330 -M respaldo_1 /cualquier/ruta
+
+		Ejecute lo siguiente para obtener más detalles y descripción de otras opciones:
+	
+			man 8 xfsdump
+
+		Ejecute lo siguiente para restaurar el respaldo desde el nivel 0 hasta los últimos respaldos incrementales:
+		
+			xfsrestore -r -f /dev/st0 /cualquier/ruta
+
+		Ejecute lo siguiente para listar los respaldos disponibles:
+
+			xfsrestore -I
+
+		Ejecute lo siguiente para restaurar específicamente los datos del respaldo 0 que se hizo con la etiqueta session_201503192130:
+		
+			xfsrestore -L session_201503192130 -f /dev/st0 /cualquier/ruta
+
+		Ejecute lo siguiente para restaurar específicamente los datos acumulados hasta el primer respaldo incremental, el cual tendría la etiqueta session_201503192230:
+
+			xfsrestore -L session_201503192230 -f /dev/st0 /cualquier/ruta
+
+		Ejecute lo siguiente para obtener más detalles y descripción de otras opciones:
+
+			man 8 xfsrestore
+
+	- Gestión de cuotas de sistema de archivos en XFS.
+
+		El soporte para cuotas de sistema de archivos se hace similar a como se realiza con Ext4. Edite el archivo /etc/fstab:
+		
+			vi /etc/fstab
+
+		Encontrará un contenido similar al siguiente.
+		
+			#
+			# /etc/fstab
+			# Created by anaconda on Wed Aug 13 17:30:34 2014
+			#
+			# Accessible filesystems, by reference, are maintained under '/dev/disk'
+			# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info
+			#
+			/dev/mapper/lv-root / xfs defaults 1 1
+			UUID=9b9d6414-bc25-4640-9b6a-69028a3d3003 /boot xfs defaults 1 2
+			/dev/mapper/lv-home /home xfs defaults 1 2
+			/dev/mapper/lv-swap swap swap defaults 0 0
+
+		Añada sólo las opciones usrquota y grpquota a las opciones de la partición donde se requiera añadir soporte de cuotas de sistema de archivos:
+
+			#
+			# /etc/fstab
+			# Created by anaconda on Wed Aug 13 17:30:34 2014
+			#
+			# Accessible filesystems, by reference, are maintained under '/dev/disk'
+			# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info
+			#
+			/dev/mapper/lv-root / xfs defaults 1 1
+			UUID=9b9d6414-bc25-4640-9b6a-69028a3d3003 /boot xfs defaults 1 2
+			/dev/mapper/lv-home /home xfs defaults,usrquota,grpquota 1 2
+			/dev/mapper/lv-swap swap swap defaults 0 0
+
+		Guarde el archivo y salga del editor de texto.
+
+		A diferencia de Ext3/Ext4, la opción quota sólo se puede aplicar desde el montaje inicial. Por tanto ejecutar «mount -o remount» carecerá de efecto. Aplique los cambios desmontando y volviendo a montar la partición o volumen lógico:
+
+			umount /home && mount /home
+
+		Active el soporte para cuotas de sistema de archivos.
+
+			quotaon /home
+
+		Ejecutar quotacheck carece de efecto debido a que Xfs realiza esta misma función de manera interna durante el montaje inicial.

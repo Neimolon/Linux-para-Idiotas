@@ -1,0 +1,41 @@
+********
+* CIFS *
+********
+
+
+1º Comparte la carpeta en windows y proporciona los permisos adecuados
+	>Compartir
+		>Compartir
+			>Elegir <usuario>
+
+	>Compartir
+		>Uso compartido avanzado
+			>Permisos
+				>Dar control total <usuario>
+				
+2º Montar la carpeta en linux
+	
+	mount 
+		-t cifs 								#Typo de sistema de archivos como cifs
+			-o username=<windows_user> 			#Pasamos Options <username>
+			//<win_ip>/<folder> 				#Source point
+			<linux_mount_point>					#Punto de montaje
+
+
+		mount -t cifs -o username=usuario //192.168.1.2/so /sistemasoperativos
+
+[3º] Añadir al fstab
+
+
+	- Crear /etc/credentials:
+		username=<windows_user>
+		password=<windows_user_pass>
+		
+	- sólo root puede ver y modificar:
+		chmod 600 /etc/credentials
+
+	- Edite /etc/fstab:
+		//192.168.1.254/farmacia 	/pdf 	cifs 	credentials=/etc/credentials 	0 	0
+
+
+	

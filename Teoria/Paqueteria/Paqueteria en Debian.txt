@@ -1,0 +1,74 @@
+*********************************
+* Gestion de Paquetes en Debian *
+*********************************
+
+tasksel		#lanzar el interfaz grafico de instalacion del sistema operativo
+
+********
+* DPKG *
+********
+
+dpkg [opciones] <nombre_paquete> 	#Debian PacKaGe manager
+
+		#Información de paquetes
+	-l | --list						#Listar los paquetes instalados, informa de version, arquitectura y breve descripcion	
+	--get-selections				#Listar los paquetes instalados y su estado de instalación.
+	-p <ruta_paquete>				#Print Info - Supuestamente muestra informacion del paquete, no me funciona bien
+	--info <ruta_paquete>			#Info - Muestra una descripción del paquete y sus archivos
+	--contents <ruta_paquete>		#Contenido - Muestra el los archivos contenidos por el paquete
+	-s <paquete>					#Status - Muestra el estado del paquete e informacion relevante del mismo
+	-S <text>						#Busca los paquetes que contengan la cadena de búsqueda
+	-G | --refuse-downgrade			#No instala un paquete del que ya existe una version reciente
+	-C								#Check broken packages - Lista los paquetes parcialmente instalados y dice como instalarlos correctamente
+
+		#Gestión de Paquetes
+	-i <ruta_paquete>				#Install - instalar un paquete
+	-r <paquete>					#Remove  - Elimina un paquete dejando sus ficheros de configuracion
+	-P | --purge <paquete>			#Purge - Elimina un paquete y sus ficheros de configuracion	
+	--configure <package>	 		#Configura de nuevo paquete instalado
+	
+		#Gestion de arquitectura del sistema de paquetes
+	--print-architecture					#Muestra la arquitectura de los paquetes que dpkg instala (i386,amd64,...).
+	--print-foreign-architectures			#Lista de las arquitecturas adicionales para las que se ha configurado dpkg para permitir la instalación de paquetes.
+	--add-architecture <arquitectura> 		#Añade la arquitectura a la lista de arquitecturas donde los paquetes se pueden instalar sin utilizar --force-architecture.
+    --remove-architecture <arquitectura> 	#Elimina la arquitectura de la lista de  arquitecturas.
+	--force-architecture					#Opción para forzar las acciones no permitidas de los comandos de arquitectura?
+
+
+dpkg-reconfigure 	#reconfigurar un paquete
+
+*******
+* APT *
+*******
+
+apt-get <acciones> [opcion] <paquete>		#Gestor de paquetes a través de repositorio
+		update 								#Actualizar listado de repositorios
+		upgrade								#Actualizar lista de paquetes
+		dist-upgrade						#Actualizar lista de paquetes mejorando la resolución de conflictos entre paquetes
+		install	<paquete>					#Instalar paquete
+		remove  <paquete>					#Eliminar paquete
+		purge   <paquete>					#Eliminar paquete y configuraciones
+		download <paquete>					#Descargar paquete al disco
+		autoremove							#Eliminar dependencias que no están en uso
+		clean								#Limpia parte de la informacion almacenada que ya no es necesaria para ahorrar espacio
+
+apt-cache <accion> [opcion] <nombre_de paquete>		#Programa para realizar consultas a la cache de APT	
+		   search 			<nombre_de paquete>		#buscar paquete en la cache
+		   depends			<nombre_de paquete>		#lista dependencias
+
+aptitude	#Funciona igual a apt-get, además tiene un entorno grafico para consola
+
+alien	#convierte paquetes rpm a paquetes deb
+
+
+***********
+* Ficheros*
+***********
+
+/etc/apt/sources.list		#Fichero con las rutas de los repositorios	
+/etc/apt/sources.list.d/	#Directorio que modulariza los ficheros con las rutas de los repositorios	
+
+??							#Directorio con los paquetes provee cada repositorio 
+							#Puede pasar que los repositorios tengan la relacion de alojan mal configurada y sea necesario editarlos manualmente.
+
+

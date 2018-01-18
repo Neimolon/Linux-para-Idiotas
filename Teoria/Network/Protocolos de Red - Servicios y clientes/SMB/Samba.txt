@@ -1,0 +1,75 @@
+*********
+* SAMBA *
+*********
+	
+	- Servidor:
+		samba
+	
+	- Cliente:
+		smbclient
+		
+	- Puertos:
+		TCP 139(smbd), 445(smbd)
+		UDP 137(nmbd), 138(nmbd)
+
+
+	- Introducción:
+
+		Samba es un servicio que permite interoperabilidad entre sistemas Windows disponible en sistemas Unix/Linux
+		
+		Samba proviene del protocolo SMB: Server Message Block
+		
+		El servicio de samba se basa en dos demonios:
+			nmbd : Se encarga de anunciar los servicios y del funcionamiento "NetBIOS over IP"
+			smbd : Se encarga de comparticiones de archivos e impresoras
+	
+	
+		Administracion de Credenciales (smbpasswd):
+			Los clientes de Windows presentan contraseñas encriptadas en MD4 (nativo de Windows) mientras que en Linux se encriptan en MD5. Por lo que para realizar la autentificacion es necesario albergar ambas contraseñas en el servidor samba, las cuales se administran independientemente y pueden ser incluso diferentes.
+	
+	- Instalación de samba (y cliente):
+	
+		Debian: 
+			apt-get install samba samba-client
+		
+		RedHat: 
+			yum install samba samba-client
+
+	
+************
+* Comandos *
+************
+
+	testparm				#TEST PARaMeters - Comando de validación de archivos de configuración.  Devuelve configuracion activa
+		-v					#Devuelve informacion (sin comentarios) de la configuracion por STDOUT
+		
+	smbpasswd [opcion] <user>		#Gestionar credenciales smb
+		-a							#Crea una contraseña MD4 para una cuenta linux existente
+		-d							#Desactiva cuenta samba
+		-e							#reactiva cuenta samba
+		-x							#Elimina cuenta samba
+	
+	smbstatus				#Conexiones samba activas
+	
+	nmblookup <name>		#Proporciona búsquedas de nombres NetBios sobre TCP/IP
+	
+	pdbedit -L				#Listar los usuarios que hay en la base de datos de usuarios y passwd de samba
+			-xu <user>		#Delete user <user> 
+			
+	smbclient						#Cliente Linux para acceder a recursos samba
+		-L <direccion_server>
+		-U <nombre usuario>
+			
+	
+
+
+
+
+	
+	
+	
+
+	
+	
+	
+	

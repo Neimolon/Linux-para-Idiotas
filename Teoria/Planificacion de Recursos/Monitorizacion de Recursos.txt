@@ -1,0 +1,174 @@
+
+****************************** 
+* Monitorización del Sistema *
+******************************
+	- Existen una amplia gama de herramientas que nos permiten monitorizar el estado del sistema y de las cuales es importante saber entender la salida que producen.
+	
+	 - Las áreas de monitorización de pueden dividir en los siguientes bloques:
+		• CPU
+		• Memoria (RAM/ SWAP)
+		• Load Average
+		• Network
+
+		
+******************************
+* Comandos de Monitorizacion * 
+******************************
+		
+	iostat [options] [interval [count]] [device]	#Se utiliza para monitorear la carga de I/O de un dispositivo y CPU. - Del paquete sysstat
+		<options>		#Parametros del comando
+			-c				#Muestra las estadísticas de CPU.
+			-d				#Muestra las estadísticas de los dispositivos.
+		<interval>			#Intervalo de segundos en los que se volvera a lanzar el comando = 1,2,40,...
+		<count>				#Número de veces que se mostraran las estadísticas
+		<device>			#Ruta hacia el dispositivo a consultar
+
+		#Ejemplos:
+			iostat -c 1 2
+
+		
+		#Output
+			avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+					  12,90    0,01    4,61    1,61    0,00   80,87
+					  
+					  
+				%user =  Uso CPU durante ejecución a nivel de usuario (Aplicación).
+				%nice =  Uso CPU durante ejecución a nivel de usuario (Prioridad)
+				%system =  Uso CPU durante ejecución a nivel de sistema (Kernel)
+				%iowait =  Tiempo ocioso de CPU a la espera de operaciones I/O.
+				%steal =  Tiempo dedicado a la espera de la CPU virtual mientras el hipervisor atendía otros procesadores virtuales.
+				%idle =  Tiempo ocioso de CPU sin esperar por operaciones I/O.
+
+					
+			Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn
+			sda              15,73       148,88       591,53    2963586   11774573
+					
+				tps 		=  Transferencias por segundo.
+				kB_read/s 	=  Lecturas por segundo en KB.
+				kB_wrtn/s 	=  Escrituras por segundo en KB.
+				kB_read 	=  Total de lecturas en KB.
+				kB_wrtn 	=  Total de escrituras en KB.
+
+
+	vmstat [options] [delay[count]] 	#Informa de las estadísticas de memoria virtual sobre procesos, memoria, paginación, bloques I/O y utilización de CPU.
+		<delay>								#Num de segundos cada cuanto se muestran estadísticas.
+		<count>								#Num de veces que se muestran las estadísticas.
+		#Ejemplo:
+			vmstat 1 3
+
+		#Output:
+			procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+			 r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+			 0  0      0 514648 4925564 7563096    0    0   438   153  369  351 13  5 81  2  0
+			 
+			-- procs --
+				r = Indica el número de procesos actualmente en la cola de ejecución.
+				b = Indica el número de procesos actualmente en la cola de bloques. Estos procesos están a la espera de un dispositivo.
+			
+			-- memory --
+				swpd =  Indica la cantidad de memoria virtual utilizada en KB (swap)
+				free =  Indica la cantidad de memoria libre, que no esta en uso.
+				buff =  Indica la cantidad de memoria asignada a buffers, ésta contiene bloques de disco sin procesar.
+				cache =  Indica la cantidad de memoria cache (contiene archivos)
+			
+			-- swap --
+				si = Indica la cantidad de memoria que se intercambia desde el disco.
+				so = Indica la cantidad de memoria que se intercambia hacia el disco.
+			
+			-- io --
+				bi = Indica la cantidad de bloques por segundo que se recibe desde un dispositivo de bloques.
+				bo = Indica la cantidad de bloques por segundo que se envía a un dispositivo de bloques.
+			
+			-- system --
+				in = Indica el número de interrupciones por segundo.
+				cs = Muestra el número de cambios de contexto por segundo.
+			
+			-- cpu --
+				us = Muestra el porcentaje de tiempo dedicado a la ejecución de código que no es del kernel.
+				sy = Muestra el porcentaje de tiempo dedicado a la ejecución de código del kernel.
+				id = Muestra el porcentaje de tiempo de inactividad.
+				wa = Muestra el porcentaje de tiempo de espera para I/O (entrada/salida).
+				st = Muestra el porcentaje de tiempo robado por una máquina virtual.
+
+
+	netstat 	#muestra un listado de las conexiones activas de nuestra máquina. Además permite obtener información de la red y los protocolos utilizados.
+		-i			#Permite obtener el estado de las tarjetas de red ( = ifconfig –a)
+		-e			#Visualiza todas las conexiones establecidas
+		-r			#Permite obtener las tablas de enrutamiento (= route)		
+		-a			#Permite visualizar todas las conexiones
+		-n			#Indica las IPs en lugar de los nombres de las conexiones
+		-A			#Permite especificar el protocolo
+		-p			#Muestra el ID y el nombre del proceso que levanta el socket
+					
+					
+		#Ejemplo:
+			 netstat –pantu
+
+		 
+	ps		 #Muestra la lista de procesos en ejecución.
+	-f			#información más detallada.
+	-e			#Muestra información de todos los procesos en curso.
+	-l			#Muestra información más técnica.
+	-a			#Muestra todos los procesos excepto los no controlados por el terminal.
+	-x			#Muestra todos los procesos inclusos los no controlados por el terminal.
+
+		#Ejemplo:
+			ps -efl
+			ps -aux
+			
+pstree [pid|username]		#muestra la misma lista de procesos que los comando ps y top, pero la salida se obtiene en formato árbol.
+
+w 			#Muestra la información de los usuarios actualmente conectados y las mismas estadísticas que el comando uptime.
+	-s			#Short - Formato corti
+	
+		#Ejemplo
+			w -s
+			
+lsof [options] [file]		#Muestra información a cerca de los ficheros abiertos y sus correspondientes procesos.
+	+d <dir>					#Busca por directorio en vez de fichero
+		
+		#Ejemplo:
+			lsof +d /var/log
+
+
+free [options]		#Muestra una visión en tiempo real de la cantidad de memoria física y virtual de un sistema.
+	-l 					#Muestra estadísticas detalladas del consumo de memoria.
+	-[k|m|g] 			#Muestra estadísticas en KB | MB | GB.
+
+	#Ejemplo:
+		free -m
+			
+top			# muestra una visión en tiempo real del sistema en ejecución.
+		d 	#en interactivo - 
+		p	#en interactivo - 
+		k	#en interactivo - matar procesos
+		p 	#en interactivo - ordenar por uso de memoria
+		m	#en interactivo - ordenar por uso de procesador
+		r	#en interactivo - renice, camviar prioridades
+		
+uptime		#muestra el tiempo que el sistema lleva en funcionamiento, el número de usuarios conectados y la carga del sistema en los últimos 1,5 y 15 minutos.
+	
+	#Salida:
+		22:26:28 up  6:30,  4 users,  load average: 0,18, 0,28, 0,27
+
+
+sar [options] [interval [count]] 		#recoge informes o guarda información de la actualidad del sistema.
+	-d		 #uestra estadísticas de discos.
+	-b		 #Muestra todas las tasas de transferencia I/O.
+	-C		 #Muestra las llamadas del sistema.
+	-p		 #Muestra la actividad de paginación.
+	-w		 #Muestra la actividad de swapping.
+	-q		 #Muestra la cola en ejecución.
+	-r		 #Muestra la cantidad de memoria y swap libre.
+
+	#Ejemplo:
+		sar -b 1 1
+		
+	#Output:
+		Linux 4.9.0-2-amd64 (vault)     13/03/17        _x86_64_        (4 CPU)
+
+		22:29:44          tps      rtps      wtps   bread/s   bwrtn/s
+		22:29:45        15,00      0,00     15,00      0,00    160,00
+		Media:          15,00      0,00     15,00      0,00    160,00
+		
+		

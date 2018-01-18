@@ -1,0 +1,150 @@
+*************************************
+* Configuración de la Red en Debian *
+*************************************
+
+	**********
+	Interfaces
+	**********
+
+	Puede haber diversos Interfaces de red:
+		Loopback .- lo.
+		Ethernet .- eth0, eth1, …
+		Modem .- ppp0, ppp1, …
+		Wifi .- wlan0, wlan1, …
+		Bluetooth .- hci0, hci1, …
+		Token Ring .- tr0, tr1, …
+
+	Actualmente con la introduccion de systemd la NOMENCLATURA cambia <predictible network names>
+
+		Ethernet .- enp3s0
+			en -> EtherNet
+			p3 -> Pci 3 s
+			s0 -> Slot 0
+		
+		Wifi .- wlp3s0
+			wl -> WireLess
+			p3 -> Pci 3 <puede cambiar dependiendo del tipo de pci, s para express...>
+			s0 -> Slot 0
+
+			
+		Para desactivar "predictible network names":
+			/etc/default/grub
+				quiet net.ifnames=0 biosdevname=0" 
+			
+	**************************		
+	Ficheros de Configuracion
+	**************************
+
+	/etc/hostname 		#El nombre la máquina, también existe la variable de entorno $hostname
+
+	/etc/host.conf		#Archivo de configuracion de hosts
+	/etc/hosts			#direcciones a resolver de nombre internos
+						#Es muy recomendable hacer que se resuelva localhost y la ip lo
+			
+						###Ejemplo fichero configuracion hosts
+							#<ip_address>	<canonical_hostname>	[<aliases>...]	
+							#127.0.0.1		localhost				local
+							127.0.0.1       localhost
+							192.168.1.10    foo.mydomain.org       foo
+							
+	/etc/hosts.allow		#direcciones a resolver de nombre internos - TCPWrappers
+	/etc/hosts.deny			#direcciones a resolver de nombre internos - TCPWrappers
+
+							###Ejemplo Fichero /etc/hosts.allow y hosts.deny
+									#	daemon_list : client_list [ : shell_command ]
+									#	   sshd		: 192.168.1.7
+									ALL:192.168.1.7	#permitir todo
+
+	/etc/resolv.conf	#direccion del servidor DNS, se modifica al vuelo si el interfaz está configurado como DHCP.
+	
+						###Ejemplo fichero resolv.conf y opciones permitidas
+						#<configuration_option> <value>
+						search domain.com
+						nameserver	8.8.8.8
+						
+						#Configuration Options:
+						nameserver <DNS_IP_addr> 	#Servidor de nombres de dominio que deve ser consultado para resolver dominios. Acepta direcciones IPv4 e IPv6
+													#Si no hay ninguno configurado se toma a la maquina local como DNS
+
+						domain <local_domain_name>	#Most queries for names within this domain can use short names relative to the local domain
+													#domain localdomain
+													
+						search <mame_to_lookup>		#Search list for host-name lookup.
+													#search domain.com
+													
+						sortlist <ip/ip ip>			#This  option  allows addresses returned by gethostbyname(3) to be sorted.
+													#sortlist 130.155.160.0/255.255.240.0 130.155.0.0
+
+						options <option>			#Options allows certain internal resolver variables to be modified.  The syntax is
+
+													#Opciones: debug, ndots:<n>, timeout:<n>, attempts:<n>, rotate, no-check-names, inet6, ip6-bytestring, ip6-dotint/no-ip6-dotint, edns0, single-request, single-request-reopen 
+						
+						###Consideraciones sobre resolv.conf:
+						#  Existen progrogramas que pueden sobreescribir el archivo como dhcp (siendo llamado por wpa_supplicant?)
+						#  Para evitar que dhcp pise este archivo:
+						#  		Editar /etc/dhcp/dhclient:
+						#  		supersede domain-name-servers <nameserver>, <nameserver>;
+						#		prepend domain-name-servers 1.2.3.4, 1.2.3.5;
+
+	/etc/nsswitch.conf	#Name Service SWITCH Configuration -  Determina donde encontrar la informacion de nombres de servicios requerida por las librerias de C en un rango de categorias y en que orden deben usarse. Cada categoría de informacion se corresponde con una base de datos.
+	
+					###EJEMPLO DEL FICHERO nsswitch.conf
+						#<category-database-name>:	<servicio_primario> [<STATUS>=<ACTION>]		<servicio_secundario> [<[STATUS=ACTION]>]	<serv...>
+						#hosts:          			files 										mdns4_minimal 		  [NOTFOUND=return]      dns
+						host:		files dns
+
+					#CATEGORIAS(BASES DE DATOS)
+					
+					       aliases     Mail aliases, used by getaliasent(3) and related functions.
+						   ethers      Ethernet numbers.
+						   group       Groups of users, used by getgrent(3) and related functions.
+						   hosts       Host names and numbers, used by gethostbyname(3) and related functions.
+						   initgroups  Supplementary group access list, used by getgrouplist(3) function.
+						   netgroup    Network-wide list of hosts and users, used  for  access  rules.   C  libraries before glibc 2.1 supported netgroups only over NIS.
+						   networks    Network names and numbers, used by getnetent(3) and related functions.
+						   passwd      User passwords, used by getpwent(3) and related functions.
+						   protocols   Network protocols, used by getprotoent(3) and related functions.
+						   publickey   Public and secret keys for Secure_RPC used by NFS and NIS+.
+						   rpc         Remote  procedure  call names and numbers, used by getrpcbyname(3) and related functions.
+						   services    Network services, used by getservent(3) and related functions.
+						   shadow      Shadow user passwords, used by getspnam(3) and related functions.
+
+					   *  Optional actions to perform if a particular result is obtained from the preceding  service, for example, "[NOTFOUND=return]".
+
+						   An action may also be specified following a service specification.   The  action  modifies the  behavior  following  a  result obtained from the preceding data source.  Action items take the general form:
+
+							   [STATUS=ACTION] 
+							   [!STATUS=ACTION]
+
+						   where
+
+							   STATUS => success | notfound | unavail | tryagain
+							   ACTION => return | continue
+
+						
+	/etc/network/interfaces			#Definir los interfaces de red y su configuración, 
+									#puede estar sobreescrito por el paquete "network-manager" en caso de que esté instalado el paquete
+	/etc/network/interfaces.d/		#Directorio para crear una configuracion modular
+
+				###EJEMPLO DE CONFIGURACION EN /etc/network/interfaces ###
+				auto <iface>	#esta linea levabta el dispositivo automaticamente
+
+				auto <iface> <iface2> <iface3:0> <iface3:1>	#En esta linea se pueden levantar simultaneamente diferentes dispositivos así como crear multiples dispositios virtuales de un mismo dispositivo
+				
+				iface <iface> inet static	#linea ejemplo interfaz estático
+				address <ip>
+				netmask <mask>
+				gateway 	<ip>
+				dns-nameservers <ip-dns>	#
+				pre-up <ruta-script>		#lanzar scripts en un momento del levantamiento del interfaz
+				up <ruta-script> 			#lanzar scripts en un momento del levantamiento del interfaz
+				down <ruta-script> 			#lanzar scripts en un momento del levantamiento del interfaz
+				post-down <ruta-script> 	#lanzar scripts en un momento del levantamiento del interfaz
+				wpa_ssdi <ssid>				#Para wifi
+				wpa_psk <psk_passwd>		#Para wifi
+
+	/etc/protocols		#Archivo de definicion de protocolos
+	/etc/services		#Servicios de red de internet
+	
+
+

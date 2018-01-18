@@ -1,0 +1,8 @@
+
+
+	- De forma persistente
+		CentOs <= 6 :
+			- Editamos "/etc/sysctl.conf"
+				net.ipv4.ip_forward =1
+			- Recargamos la configuración
+				sysctl -p /etc/sysctl.conf

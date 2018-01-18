@@ -1,0 +1,200 @@
+********
+* RAID *
+********
+(Redundant Array of Independent Disks)
+
+
+	- Generalmente tenemos RAID por Software y RAID por Hardware.
+	- En entornos de producción lo normal es utilizar cabinas de almacenamiento con configuraciones RAID por Hardware.
+	- En función del tipo de RAID conseguiremos más velocidad de R/W o seguridad.	
+
+	- Nomenclatura: Los dispositivos configurados como RAID en Linux son detectados por el Kernel como "/dev/mdX"
+
+*************
+TIPOS DE RAID
+*************
+
+	RAID 0 (Striping):
+		• Distribuye datos entre dos o más discos sin paridad (no hay redundancia).
+		• Mejora el rendimiento pero no aporta seguridad.
+		• Lo podemos crear con discos de diferentes tamaños. Pero la cantidad de espacio utilizado será la del disco más pequeño.
+		• Espacio disponible: suma de los discos. 204.1 Configuración RAID (3) RAID 1 (Mirroring):
+		• Se crea una copia exacta de un conjunto de datos en dos o más discos.
+		• Bajo rendimiento.
+		• Con tolerancia a fallos, que garantiza la seguridad de los datos.
+		• Espacio disponible: ½ de espacio total.
+
+	RAID 4:
+		• Se queda con los beneficios de un RAID 0 y RAID 1.
+		• Se necesitan mínimo tres discos con uno de paridad, más un disco opcional de spare.
+		• Si un disco falla, con el disco de paridad podemos reconstruir el RAID.
+		• Espacio disponible: total – disco paridad – (spare)
+
+
+	RAID 5:
+		• A diferencia del RAID 4, la paridad es distribuida en todos los discos.
+		• Necesitamos mínimo 3 discos para construir un RAID 5 más un disco opcional de spare.
+		• Si un disco falla, con el disco de paridad podemos reconstruir el RAID.
+		• Espacio disponible: total – disco paridad – (spare)
+
+
+	RAID 6:
+		• Para construir un RAID 6 necesitamos mínimo 4 discos pero a su vez tenemos doble redundancia.
+
+	RAID 10:
+		• La combinación entre RAID 0 y RAID 1. RAID 10 es la mejor elección para niveles de rendimiento altos como bases de datos.
+		
+		
+************
+* Comandos *
+************
+
+	mdadm  <modo> <mdX> [opt] <devices>		#Para configurar los volúmnes RAID usamos la herramienta mdadm
+		<modo> <mdX> 							#Accion a realizar sobre el <raid_dev>
+			-A | --assemble							#Ensambla los componentes de un conjunto ensamblado previamente 
+			-B | --build							#Crear conjunto RAID que carece de metadatos
+			-C | --create							#Creacion de un conjunto RAID
+			-S | 									#Desactiva un volumen RAID
+			-F | --follow | --monitor				#Monitoriza cambios de estado de un RAID
+			-G | --grow								#Añadir particiones o notificar cambios de particiones a un conjunto 
+			-I | --incremental						#Añade un unico dispositivo a un conjunto
+			-D | --detail							#nos permite conocer el estado y la naturaleza de un RAID desconocido.
+		[opt]								#Opciones de configuracion del raid
+			-h | --help								#Mostrar ayuda
+			-V | --version							#Mostrar version de mdadm
+			-v | --verbose							#Vervose
+			-f										#force
+			-c | --config=<file>					#Especificar archivo de configuracion (por defecto en /etc/mdadm/mdadm.conf)
+			-s | --scan								#Scan config file or /proc/mdstat for missing information. 
+													#less  detailed  - format  suitable  for  inclusion in /etc/mdadm.conf
+			-e | --metadata=<level>					#Establece estilo de los metadatos, level=[0,90|1,0|1,1|1,2]
+			#opciones exclusivas para create,build , algunas tambien para grow
+			-l | --level <n>						#Tipo de RAID que se va a usar <n>=0,1,...
+			-N | --name=<name>						#Establece nombre para el conjunto, requiere superbloque version 1 (nivel de metadatos)
+			-n | --raid-devices=<n>					#Numero de dispositivos <n> a usar en el RAID (no spare)
+			-x | --spare-devices=<n>				#Numero de dispositivos spare en el conjunto
+			-c | --chunk=<size>						#Establecer tamaño de los bloques de datos (en KiB), 64 por defecto	
+			#opciones exclusivas para manage
+			-a | --add <device						#Añade dispositivo al conjunto
+			   | --re-add							#Añadi al conjunto un dispositivo eliminado
+			-r | --remove <device>					#Sacar un disco del raid
+			-s | --stop	<device>					#Desactiva el RAID
+			-f | --fail | --set-faulty <device>		#Marca un dispositivo como erroneo
+			--zero-superblock <dev> <...>			#Eliminar el superbloque de los dispositivos asociados al RAID <dev> = /dev/sdb
+			   
+			  
+
+
+			###Ejemplos
+			#mdadm –C /dev/md0 –l 0 –n 2 /dev/sdb /dev/sdc		#Crear RAID 0 em 2 discos
+			#mdadm -v -C /dev/md0 -n 2 /dev/sdb1 /dev/sdc1 -l 1 --spare-devices=1 /dev/sdd1 	#Crear RAID 1 en 2 discos con otro disco de BackUps
+			#mdadm –D /dev/mdX
+			#mdadm --detail --scan >> /etc/mdadm.conf		#Meter configuracion de un raid recien creado en mdadm.conf
+			#mdadm --detail /dev/md0			#Revisar el estado del RAID
+			#mdadm /dev/md0 -r /dev/sdb1		#Sacar disco de raid md0
+			#mdadm /dev/md0 -a /dev/sdb1		#Añadir nuevo disco en raid md0
+	
+************
+* Ficheros *
+************
+	/dev/md<*>			#Ruta a dispositivos RAID
+	/dev/md<*>pt<n>		#Rutas a las particiones de los dispositivos RAID
+	
+	/proc/mdstat		#fichero que proporciona informacion sobre el estado del RAID.
+
+	/etc/mdadm.conf		#Fichero de configuracion mdadm
+		- A diferencia de /etc/raidtab, mdadm no depende de /etc/mdadm.conf para crear o gestionar arrays. En su lugar, mdadm.conf es simplemente una manera adicional de seguir la pista a los dispositivos RAID software. Utilizar un fichero de configuración con mdadm es útil pero no necesario. Tener uno significa que usted puede gestionar los arrays de forma ágil sin invertir tiempo en descubrir qué propiedades tienen y dónde están los discos.
+		
+		- Por ejemplo, si un array no está en marcha y no existe el fichero mdadm.conf describiéndolo, entonces el administrador del sistema debe invertir tiempo en examinar cada disco para determinar sus propiedades y miembros.
+
+		- Una cosa importante es contar con el Intent Bitmap activo, esto es una característica que se le agrega a un arreglo por software y permite hacer sincronizaciones diferenciales entre los discos tras producirse una falla, reduciendo asi los tiempos al no tener que sincronizar el disco completo cada vez que algo ocurre.
+
+		- Al verificar el detalle de cada arreglo con mdadm de la forma ya mencionada en este artículo, se muestra si está activa o no esta característica, en este casi si lo está.
+
+		
+***************
+* Guia de Uso *
+***************
+
+	-Particionado del Disco:
+		Tipo FD - "Linux RAID Autodetect"
+
+	- Obtener información del RAID:
+		# cat /proc/mdstat
+	
+	- Detalles de las unidades RAID:
+		# mdadm –query /dev/md0
+		# mdadm –detail /dev/md0
+		# mdadm --detail /dev/md0
+
+	- Detalles de las unidades físicas:
+		# mdadm –query /dev/sdb1
+		# mdadm –examine /dev/sdb1
+
+	- Administración de una RAID y sus discos
+		* Establecer un disco como faulty/failed:
+			$ mdadm –fail /dev/md0 /dev/sdb1
+				--> No utilizar en RAID0 ó RAID en modo linear. Pueden perderse los datos!
+		* Quitar un disco fallido de una RAID:
+			mdadm –remove /dev/md0 /dev/sdb1
+		* Limpiar cualquier información previa de un disco RAID (Ej. al reutilizar un 	disco de otra raid antigua)
+			mdadm –zero-superblock /dev/sdb1
+		* Añadir un disco a la RAID
+			mdadm –add /dev/md0 /dev/sdb1
+		* Añadir “bitmap” a un RAID
+			mdadm –grow /dev/mdX –bitmap=internal
+		* Quitar el soporte de “bitmap” a un RAID
+			mdadm –grow /dev/mdX –bitmap=none
+		* Crear un RAID
+			mdadm --create --verbose /dev/md0 --level=1 /dev/sda1 /dev/sdb2
+		* Generar el mdadm.conf con la configuración actual
+			mdadm --detail --scan >> /etc/mdadm.conf
+	
+	- RAID-0
+		mdadm --create --verbose /dev/md0 --level=stripe --raid-devices=2 /dev/sdb6 /dev/sdc5
+
+	- RAID-1 
+		mdadm --create --verbose /dev/md0 --level=mirror --raid-devices=2 /dev/sdb1 /dev/sdc1
+		mdadm --create --verbose /dev/md0 --level=mirror --raid-devices=2 /dev/sdb1 /dev/sdc1 --spare-devices=1 /dev/sdd1
+
+	- RAID-4/5/6
+		mdadm --create --verbose /dev/md0 --level=5 --raid-devices=3 /dev/sdb1 /dev/sdc1 /dev/sdd1 --spare-devices=1 /dev/sde1
+		
+	*******************************************
+	Creacion de RAID 1 (Espejo) con disco Spare
+	*******************************************
+	
+		0º Se necesitan 3 discos (por lo que es necesario obtener este recurso previamente)
+
+		1º Particionar los discos con el tipo de particion FD (Linux RAID)
+
+		2º Creacion del RAID
+			mdadm -v -C /dev/md0 -n 2 /dev/sdb1 /dev/sdc1 -l 1 --spare-devices=1 /dev/sdd1
+
+		3º Guardar la información del arreglo recién creado en el archivo "/etc/mdadm.conf"
+			mdadm --detail --scan >> /etc/mdadm.conf
+			
+		4º Monitorizacion del RAID
+			- Verificar un resumen del estado a través de /proc/mdstat.
+				cat /proc/mdstat
+			- Podemos ver el estado del RAID 
+				mdadm --detail /dev/md0
+			
+			Cuando se este creando fijarnos en el % de la opcion Rebuild Status, cuando este al 100%, ya tendremos el raid listo para ser formateado y montado.
+			
+			Con estas operaciones se ha credo el dispositivo "/dev/fd0"
+		
+		5ºFormateo y montaje del RAID:
+			mkfs.ext3 /dev/md0 
+			mkdir /documentos 
+			mount /dev/md0 /documentos/
+			(o Añadirlo a /etc/fstab si se requiere)
+			
+	**************
+	Eliminar RAID 
+	**************
+	
+		1º Para eliminar un RAID antes hay que pararlo 
+			# mdadm --stop /dev/md0
+		2º Destruir el RAID
+			# mdadm --remove /dev/md0

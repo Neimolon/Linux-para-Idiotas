@@ -1,0 +1,71 @@
+***************************************
+* Configuración y Directivas en Samba *
+***************************************
+
+	- El archivo maestro de configuracion de samba es /etc/samba/smb.conf. Una explicacion detallada puede encontrarse en:
+		--> https://www.samba.org/samba/docs/man/manpages-3/smb.conf.5.htm
+	
+	- Este archivo se divide en:
+		- Seccion [global]:	
+			
+			Afecta a todos los recursos disponibles.
+		
+		- Secciones de ["recurso compartido"]: 
+			
+			Cada una de estas secciones declara un recurso y solo afectará al recurso que declara.
+		
+			Existen subtipos específicos de recursos compartidos que suelen compartir el mismo tipo de directivas:
+			
+				- Seccion [homes]:	Si la sección existe en la configuración, permite conectar a los clientes con su home de usuario.
+				
+									When the connection request is made, the existing sections are scanned. If a match is found, it is used. If no match is found, the requested section name is treated as a username and looked up in the local password file. If the name exists and the correct password has been given, a share is created by cloning the [homes] section. 
+				
+				- Seccion [printers]:	Funciona al igual que [homes] pero con impresoras
+								
+				- Seccion [print$]: 	Algo de los drivers de impresoras
+	
+	- Directivas de configuración habituales según su sección:
+	
+		[global]
+			workgroup = grupo_de_trabajo		#Define el nombre del grupo de trabajo del servidor. 
+												#También proporciona el nombre del dominio en caso de trabajar sobre uno
+			server string = comentario			#Comentario asociado al servidor (Visible desde el entorno de red de windows)
+			log file = /ruta/log.%m				#Definicion del formato estandar del archivo de registro
+			max log size = size					#Número máximo de KB? que pueden tener los archivos de log
+			security = user						#Por defecto/opcional - "user" obliga a autentificarse con una cuenta de usuario para acceder a los recursos
+			encrypt passwords = true|false		#Por defecto/opcional - Encriptar las passwords (necesario para los clientes smb modernos)
+			unix password sync = yes|no			#Sincronizacion de las contraseñas de linux y samba
+			
+		[recurso_compartido[$]]					#Nombre con el que se verá la comparticion en máquinas Windows
+												#un "$" al final indica un recurso compartido ocuto
+												
+			comment = comentario				#Opcional - Definicion del comentario asociado a la comparticion
+			path = /ruta/compartida				#Directorio del sistema asociado a la comparticion
+			browseable = yes|no					#Visibilidad de la comparticion para los clientes
+			readonly = yes|no					#Acceso de readwrite|readonly recurso. Se aplica a la comparticion y está sometido al sistema de permisos UNIX
+			writeable = yes|no					#Acceso de readwrite|readonly recurso. Funciona igual que readonly pero a la inversa
+			write list = <user> [,<@group> ...]	#Lista de usuarios y @grupos a los que les es dado acceso de lecuta/escritura
+			force user = <user>					#Nombre de usuario que se le asignará a todos los usuarios que se conecten a este servicio
+			force group? = <group>				#Nombre del grupo que se le asignará a todos los usuarios que se conecten a este servicio
+			create mask = <perm>				#Mascara de permisos que tendran los archivos creados por los usuarios - 0700
+			directory mask  = <perm>			#Mascara de permisos que tendran los directorios creados por los usuarios 0700
+
+
+
+	-Ejemplos de secciones de recursos:
+		
+		AREA GLOBAL - Afecta a todos los recursos
+			#ToDo.
+
+		
+		# Declaracion de recurso:
+			[informes]
+			comment = Public Stuff
+			path = /informes
+			public = yes
+			writable = yes
+			printable = no
+			read list = viernes24 @nominas
+			write list = gerente @nominas
+			hosts deny = 192.168.1.3
+			admin users = gerente

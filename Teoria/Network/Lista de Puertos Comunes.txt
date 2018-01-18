@@ -1,0 +1,38 @@
+****************************
+* Lista de Puertos Comunes *
+****************************
+(Well Known Ports)
+
+21   = ftp
+22   = ssh
+23   = telnet
+19   = chargen #CHARacter GENerator protocol
+25   = smtp
+53   = dns
+67   = dhcp Server
+68   = dhcp client
+69   = tftp
+80   = http
+88   = kerberos (autenticacion)
+110  = pop3 
+123  = ntp
+137  = netbios name service #Name registration and resolution
+138	 = netbios Datagram Service
+139  = netbios Session Service
+143  = imap
+220  = imap v3
+389  = ldap #Lightweight directory access protocol 
+443	 = https
+445  = smb / Microsoft Active Directory #Samba sharing
+556  = rfs #Remote File System
+585  = imaps	# Imap sobre TLS/SSL
+587  = smtp # Email message submission
+631  = cups administration console
+636  = ldap sobre TLS/SSL
+783  = spamd #SpamAssassin Daemon
+853  = dns over TLS/SSL ###953??
+989  = ftps data
+990  = ftps control
+993  = imaps
+995  = pop3s
+6000	= X Window System

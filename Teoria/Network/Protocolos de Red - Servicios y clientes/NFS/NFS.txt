@@ -1,0 +1,52 @@
+*******
+* NFS *
+*******
+
+NFS es el protocolo tradicional de compartición de archivos en sistemas Unix.
+
+El script de administración del servicio NFS provoca la ejecución de tres daemons estándar:
+	portmap: 	gestiona las peticiones RPC (Remote Procedure Call).
+	nfsd: 		espacio de usuario del servicio NFS. Inicia los threads NFS para las conexiones cliente.
+	mountd: 	gestiona las peticiones de montaje de los clientes.
+
+Instalación de un servidor NFS 
+
+	Debian: #apt-get install nfs-kernel-server 
+	RedHat: #yum install nfs-utils
+
+	
+************
+* Comandos *
+************
+
+rpcinfo			#comando que permite efectuar una petición RPC a un servidor y mostrar los daemons gestionados. 
+
+nfsstat 		#comando que sirve para mostar las estadísticas relacionadas con la actividad en un servidor NFS.
+
+exportfs 		#comando que permite realizar un diagnostico de las comparticiones activas en el sistema.
+	-v			# Visualizar comparticiones activas con la actividad NFS
+	-a			#Fuerza la lectura de /etc/exports
+	-r			#Reexporta todos los directios difinidos en /etc/exports
+	-u			#Unexport -uno o mas directorios
+
+nfsstat			#comando que sirve para mostar las estadísticas relacionadas con la actividad en un servidor NFS.
+
+	Ejemplo : exportfs <ip>:/<path>
+
+	
+************	
+* Archivos * 
+************	
+	/etc/exports		#Declarar comparticion permanente
+
+		#Ejemplo 
+		comparticion1 direccion_cliente1(opciones)
+
+		
+********************
+Opciones comunes NFS
+********************
+
+no_root_squash		#Permite escribir como root
+root_squash			#Se escribe con la cuenta de usuario anonimp que se tenga para NFS
+all_squash			#

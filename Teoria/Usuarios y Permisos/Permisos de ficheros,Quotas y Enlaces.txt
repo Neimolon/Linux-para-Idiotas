@@ -1,0 +1,127 @@
+Permisos de ficheros,Quotas y Enlaces (104.6)
+
+(en la libreta)
+
+************
+* Permisos *
+************
+
+********
+Comandos
+********
+
+chown [opciones] <user>:<group> <ruta>	#CHange OWNer - Cambiar usuario y grupo de archivos/directorios
+										#Cambiar solo el grupo con este comando poner solo :<group>
+	-R | --recursive <usr>:<grp> <dir>	#Cambiar propietario recursivamente			
+	
+chgrp <grupo> <ruta>				#Cambiar el grupo						
+
+chmod [opciones] <permisos>	<ruta> 	#Cambiar permisos de un fichero, se puede usar el valor octal(0644) o el caracter equivalente (u=rw,g=r,o=r)
+	-R	<permisos> <dir>			#Recursive
+	-v								#Vervose
+	
+umask 	#mostrar o cambiar la mascara
+
+ln	[opciones]	<source> <link>		#link
+	-s		#enlace simbólico
+	-f		#borrar enlace
+	-d		#crear enlace a directorio
+
+unlink	<ruta_enlace>	#Desenlaza los enlaces, ojito, si se hace con un fichero tambien lo elimina
+
+********************
+Mascaras de permisos
+********************
+
+
+Se crea una mascara inversa cuando un fichero o directorio es creado.Serían los permisos que se le van a quitar a los permisos totales(666 para archivos, 777 para directorios).
+La mascara puede tener los 4 caracteres 0022. Se crean a nivel de inodo.
+
+mask	file	dir
+000		666		777
+022     644		755
+
+
+Se cambia en /etc/profile o comando umask
+
+
+***********
+* Enlaces *
+***********
+Permiten conectr un fichero con otro dentro del sistema. Existen dos tipos de enlaces duros  y blandos(simbolicos)
+Es mejor utilizar unlink a rm para asegurarse preservar la informacion.
+
+###Enlaces duros: 
+	-Los enlaces duros se realizan añadiendo a la tabla de inodos una nueva entrada. Esto hace aumentar el contador de enlaces
+	-No se pueden hacer entre distintos sistemas de ficheros.
+	-En el enlace duro se modifica la informacion del inodo del archivo al que se apunta y se le añade una nueva ruta.
+	-Cuando borras el objetivo del enlace duro la informacion sigue siendo accesible
+	
+###Enlaces blandos.
+	-Se crea un nuevo fichero con su inodo correspondiente que apunta al fichero enlazado.
+	-Cuando borras el objetivo de un enlace blando, el enlace no se borra pero queda sin referencia.
+	-Los enlaces blandos tienen permisos 777. Si se intentan cambiar los permisos al enlace, se le cambiaran al fichero referenciado.
+
+
+	
+	
+**********
+* Quotas *
+**********
+
+Las quotas se realizan en cada particion y se le pueden aplicar a usuarios o a grupos.
+se necesita instalar el paquete quota,  una vez instalado es necesario modificar el fstab y añadiremos "usrquota" o "grpquota" en la columna options
+En la raiz de cada particion que tenga quotas activadas se encuentra un fichero llamado aquota.user y acuota
+
+apt-get install quota
+
+
+Los tipos de quotas se pueden realizar por bloque o por inodos.
+Limitacion por Bloques: cada bloque corresponde a 1K, se utiliza para limitar el espacio
+Limitacion por Inodos: al limitar los inodos se limita el numero de ficheros.
+
+Limite Soft: Avisa de que se acaba el espacio
+Limite Hard: No deja pasar de ese limite
+
+*********
+Comandos
+*********
+
+quota			# Indica las cuotas activas por usuario y grupo, así como sus limites
+	-u			# De usuario
+	-g			# De grupo
+
+edquota	<user>   	#Editar los ficheros de configuracion de quota segun el sistema de archivos
+	-g 	<group>		#Editar cuotas de grupo
+	-u	<user> 		#Editar cuotas de usuario, por defecto
+	-p <usuario_origen> <usuario_clon> <...>   #copiar la configuracion de un usuario a otros usuarios
+
+repquota <ruta>	#mostrar la informacion de las diferentes quotas 
+	-a		#mostrar todo
+	-g		#mostrar grupos
+
+quotacheck	#mirar las particiones que tienen definidas las cuotas y crean los ficheros
+	-a		#crea los ficheros de todos los sistemas de archivos DANGER!!!!!!
+	-v		#vervose
+	-u		#comprobar cuotas de usuario
+	-g		#comprobar cuotas de grupo
+
+quotaon [opciones] <usuario> <ruta>	#activar quota
+	-uv
+
+quotasoff <ruta>	#desactivar quotas
+
+******
+Pasos
+******
+
+0º No olvidarse de instalar el paquete de quota
+1º Editar fstab y añadir opciones de quota correspondientes - "usrquota" o "grpquota" - (no olvidarse de remontar la partición)
+2º quotacheck -avugm   #ver todas las particiones que tienen quota, creo los ficheros .quotacheck.user y .quotacheck.group
+3º quotaon <ruta>	#Activar la cuota en la particion <ruta>
+4º edquota	#Editamos las cuotas de los usuarios, no es necesario desactivar/activar las cuotas para editarlas
+5º repquota <ruta>	#consultar reporte de cuotas
+
+
+
+

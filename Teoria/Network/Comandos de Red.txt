@@ -1,0 +1,182 @@
+*******************
+* Comandos de Red *
+*******************
+	arp									#Controlar las tablas ARP del sistema
+		-d <ip_addrs>					#Delete - Elimina la fila con la <direccion> correspondiente
+		-s <ip_addrs> <hw_addrs>		#Asocia la ip con la MAC
+		-v | --vervose					#Vervose
+		-t | -H | --hw-type <tipo>		#Establece el tipo de hardware <ether|arcnet|netrom>
+		-a								#Usa la salida corta (BSD Style)
+		-D | --use-device				#interpreta <hw_addrs> como direccion de dispositivo en vez de como direccion de hardware
+		-i | --device <iface>			#Interfaz - Limita la salida de operaciones a la interfaz
+		-f | --file <file>				#Obtiene informacion de <archivo>
+
+	ping
+		-c <n>		#Count
+		-b			#Broadcast ping
+		-i <n>		#Intervalos de tiempo entre ping
+
+	hostname 				#Permite cambiar el hostname en caliente (no persistente)
+	hostnamectl
+		set-hostname <nombrehost>			#De forma persistente - Aún así se recomienda reiniciar la máquina
+	
+	traceroute	
+	
+	ifconfig [<iface>][<action>] [<options>]		#configuracion de interfaces de red - deprectated y ahora se recomienda "ip"
+			<iface> <action>						
+					down							#tumbar el interfaz de red
+			<iface> up [<ip>] [netmask <netmask>]	#levantar el interfaz de red
+		-hwadd	<mac>								#Cambiar la mac del dispositivo
+		-a											#Mostrar todos los interfaces
+			
+	
+	ip [options] <objeto [comando]>				#mostrar la configuracion de red
+		<objets> <comando>
+			help			#Muesta ayuda referente al objeto a manipular
+		link				#Muestra la configuracion de los interfaces de red (ifconfig)
+		addr				#Muestra la configuracion de las direcciones de red (ifconfig)
+			show			#Muestra todos los interfaces de red (incluidos los alias)
+		addrlabel			#Muestra/ajusta direcciones en red IPv6
+		route				#Muestra/ajusta tabla de enrutamiento (route)
+			add
+			list
+		rule				#Muestra/ajusta reglas de la tabla de enrutamiento (iptables)
+		tunnel				#Muestra/ajusta funciones de tunneling que permiten enviar datos entre redes encapsulando muchos protocolos en uno solo
+		maddr				#Muestra/ajusta direcciones de multidifusion
+		mroute				#Muestra/ajusta rutas multidifusion
+		monitor				#Monitoriza la actividad de red
+			
+			
+			
+	ifup <iface>	#tumbar interfaz
+		-a	#All
+
+	ifdown <iface> #levantar interfaz
+		-a	#All
+				
+	netstat	#muestra los sockets abiertos del sistema
+		-a	#Activos
+		-p	#Programs - Muestra si puede los programas que han creado las conexiones.
+		-n	#Ip en vez de Hostname
+		-r  #Route - muestra la tabla de rutas
+		-i	#Interfaces - Estadisticas de los diferentes dispositivos de red
+		-t	#TCP - Puertos TCP en uso.
+		-u	#UDP - Puertos UDP en uso.
+		-M	#Masquerade - Informacion sobre conexiones que intervienen en NAT
+		-o	#Timers - Muestra informacion de los timers.
+		-l	#Listening - Muestra los puertos que estan escuchando
+		
+		#Combinaciones usuales:
+			-ta	#Muestra los TCP
+			-ua	#Muestra los UDP
+			-puta	#Ver todos los Procesos, Udp, Puertos, si estan Activos 
+			-anop
+			-alt	#Todos los puertos TCP que estan escuchando conexiones
+
+	iwlist [<iface>] <action>			#Wireless Device Information tool
+		<action>
+		scan | scanning					#Lista todas las redes disponibles
+		frec | frecuency | channel		#Lista de canales disponibles para el dispositivo
+		rate | bit | bitrate			#Lista de todas las velocidades (bitrates) disponibles
+		keys | enc | encryption			#Lista de los tamaños de clave disponibles
+		power							#Lista de modos de gestion de energía disponibles
+		txpower							#Lista de parametros de energia de transmision disponibles
+		retry							#Lista de los parametros de reintento disponibles
+		event							#Lista de eventos inalambricos soportados
+		auth							#Lista de los parametros de autentificacion disponibles
+		wpa | wpakeys					#Lista de claves WPA establecidas
+		modu | modulation				#Lista modulacion utilizada por el dispositivo
+		
+	iwconfig [<iface>]					#Wireless device configuration tools
+		essid <essid>					#Establece ESSID
+		channel <n>						#Establece canal, <n>=[1-12]
+		mode <mode>						#Modo - Managed
+		key s:<key>						#Establece clave - "s:<string>" si la contraseña es un string
+	iwspy		#wireless
+	
+	nmcli <opciones> <objetos> [<comando|ayuda>]		#NetworkManager Client - del paquete NetworkManager
+														#Ver el PDF(/Practicas/Network(nmcli??.pdf), que el pc no carga ni pa dios
+		<opciones>
+			blablabla
+		<objetos>
+			blobloblob
+		
+														
+		
+	wpa_supplicant
+	
+	
+	route {add|del} [-net|-host] <destino> [netmask <nm>] [gw <gtway>] [[dev] <iface>] 	#Gestionar tablas de routas para interconectar redes, Por defecto muestra la tabla
+										
+		{add|del} <destino> #Añadir  o eliminar <destino> de la tabla de rutas
+							#Estas modificaciones no tienen persistencia, se pierden al reiniciar.
+							#Las opciones netmask, gw, ... detallan informacion adicional no obligatoria, pero útil, a las acciones {add|del}
+							#El <destino> default es el configurado en el archivo de interfaces?
+							
+		-n					#Mostrar IP en vez de Hostname
+		
+							#*Si se va a configurar el equipo para hacer de router debe activarse el ip_forwardig
+	
+	
+	iptables <chain> <rule>
+		-t | --table <table>		#Seleccionar <table> soble la que actuar [FILTER|NAT|MANGLE] (si se omite se usa filter por defecto)
+		-A <CHAIN>					#Cadenas - <INPUT|OUTPUT|FORWARD|...>
+		-p <port>					#Puerto sobre el que actuar, <22> - rango de puertos -> <22:30>
+		-s <ip>						#Source - Ip de origen
+		-d <ip>						#Destiny - Ip de destino
+		-j <ACTION>
+		--dport <port>				#Destiny port - Puerto de destino
+		--log-level <n>				#Hay que modificar el syslog.conf también
+		
+		
+
+	tcpdump			#Sniffer de paquetes que circulan en la red
+		-c <n>		#Capture -  Numero de paquetes a capturar
+		-A			#ASCII - Muestra el contenido de los paquetes en ASCII
+		-D			#Muestra una lista de los interfaces en los que tcpdump puede escuchar
+		-n			#Mostrar IP en vez de Hostname
+		-v[vv]		#Vervose - Muestra mas informacion de los paquetes
+		-w <file>	#Write - Guardar captura a un archivo
+	
+	tshark			#Wireshark para linea de comandos
+
+Equivalencias entre comando "ip" e "ifconfig"	
+<ver diapositiva 9 - LPIC1 (tabla verde)
+
+	nc [opciones] [host] [puertos]			#NetCat - Navaja suiza accesos a bajo nivel, envia datos,monitorizar puertos...
+		-d									#No lee estrada estandar
+		-h									#Help - Muestra ayuda
+		-i <interval>						#interval - Inserta un intervalo entre texto enviado y recibido
+		-l									#Listen - Escucha conexion entrante en vez de establecer conecion saliente
+		-lk									#Keep - se usa con "-l" se mantiene a la escucha de una nueva conexion una vez que termine la actual
+		-[l]p <port>						#Port - Utiliza el puerto saliente especificado
+		-[l]s <ip_addr>						#Especifica direccion ip saliente
+		-n									#No realiza búsquedas DNS
+		-r									#Random - Selecciona los numeros de puerto aletoriamente
+		-u									#UDP - Utiliza UDP en ligar de TCP
+		-U									#UDP Sockets - Utiliza sokets de dominio UDP
+		-v									#Verbose
+		-w <n_time>							#Wait - Finaliza una conexion que ha estado activa <n_time< segundos
+		-x <ip_addr[:port]>					#Realiza una conexion a traves del servidor proxi especificado				
+		-x<ip_addr[:port]> -X <version>		#Utiliza la version del proxy especificada [4|5|connect] - Socks v.4 | v.5 (defecto) | HTTPS proxy
+		-z									#Escanea en busca de un servidor a la escucha sin enviarle datos
+		
+	nmap <hostname/address>	#Network Mapper - explorador de red. Permite probar las conexiones de red de una máquina determinada y obtener información.
+		-sP	<rango>			#Network Discovery
+		-sT <host>			#Puertos abiertos TCP
+		-sU	<host>			#Puertos abiertos UDP
+		-A <address>		#All -  Mostrar toda la informacion del host
+		-O	<address>		#Obtener sistema operativo
+		
+	lsof [<path>]				#LiSt Open Files	#Listado de los archivos abiertos por pocesos en el sistema [o en un directorio]
+		-i [<addr>]				#Selecciona los accesos de red restringiendo opcionalmente los que usan la <addr>
+			<4|6>				#Version IP
+			<protocol>			#protocolo de conexion - tcp | udp
+			<@host|addr>		#nombre de host o direccion ip
+			<:service|port>		#Nombre de servicio o numero de puerto
+		-l						#Impide la conversion de los UID en nombres de usuario
+		+|-M					#Habilita(+) o Deshabilita(-) informacion sobre registros de puertos que utiliza NFS y otros servidores
+		-n						#Evita la resolucion de nombres de las ip
+		-P						#Evita la conversion de puertos en nombres de servicio
+		-t						#Muestra solo los PID (util para scripts con kill)
+		-X						#Omite informacion sobre archivos TCP, UDP y UDPLite

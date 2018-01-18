@@ -1,0 +1,1281 @@
+****************
+* Introducción *
+****************
+
+Los comandos en linux se ejecutan desde uns shell, hay un monmton de shells diferentes.
+
+Las shell tienen sus propios comandos internos, y además pueden lanzar comandos del sistema a traves de las rutas de las variable global $PATH o poniendo la ruta completa de los comandos. 
+Tambien se puedne lanzar comandos utilizando una subshell $sh <comando>. Pero hay que tener en cuenta que las subshells tienen sus propias variables de entorno
+
+**************************
+Variables de entorno(BASH)
+**************************
+
+set									#Set or unset values of shell options and positional parameters. --- ¿¿¿Using `+' instead of `-' turns off the given attribute???
+	-o <opcion>						 
+		vi							#Cambiar EMACS keysrokes por VI
+		emacs						#Cambiar VI keysrokes por EMACS
+		noclobber					#Evitar sobreescritura de archivos al hacer redirecciones
+	-a|	allexport					#Mark variables which are modified or created for export.
+	-m|	noexec						#Read commands but do not execute them.
+	-f|	noglob						#Disable file name generation (globbing).
+	-b| notify						#Notify of job termination immediately.
+	-v| vervose						#Print shell input lines as they are read.
+		etc...
+		
+declare <variable[=value]>		#Declarar una variable ---   Using `+' instead of `-' turns off the given attribute.
+		-i <variable[=value]>	#declara como integer
+	    -a <variable[=value]> 	#Declara un array indexado		
+	    -A <variable[=value]> 	#Declara un array asociativo		
+	    -r <variable[=value]> 	#Declara una variable inmutable (Read Only)
+		-x       				#to make NAMEs export
+
+<VAR>=<VALOR>					#Otra forma de declarar una variable		
+
+export <variable>	#Hacer global una variable
+
+unset <var>			#Eliminar variable
+
+env							#Muestra las variables del entorno
+	-u <var> <script>		#Deshabilita una variable temporalmente para un script
+
+alias						#Muestra todos los alias definidos en la shell actual
+      <alias>=<comando>		#Crear el alias <alias> que lanza el comando <comando>
+	  
+unalias <alias>			
+
+*******
+History
+*******
+
+history -c   #limpiar el historial
+!<numero>	#recupera y ejecuta el comando del history correspondiente al identificador
+!$			#recupera los argumentos pasados al comando anterior
+
+#Buscar en historial
+	Ctrl + R : Reverse Search - Busca un texto en el historico (pulsar repetidamente para retroceder)
+	Ctrl + S : Volver hacia adelante en el reverse search - Si se pulsa en el comando más reciente se puede bloquear, para desbloquear se pulsa Ctrl + Q
+	
+Desplazamiento en linea:
+	Ctrl + A	#Desplazar cursor al inicio de la linea
+	Ctrl + E	#Desplazar cursor al final de la linea
+	
+Borrar texto:
+	Ctrl + K				#Borrar texto entre el cursos y el fin de linea
+	Ctrl + X - <retroceso> 	#Borrar texto entre el cursos y el inicio de la linea
+
+	
+fc [n_first] [n_last]	#Fix Command - Permite editar comandos del historial (solo el último por defecto)
+	-l			#Listar comandos del history
+	-s	<n>		#Ejecutar el comando <n> de la lista del historial
+**********************
+* Comandos en Linux: *
+**********************
+
+*****************
+Comandos de ayuda
+*****************
+
+man
+	-k <texto a buscar>	#busca en las descripciones breves de la base de datos man 
+	-f	<texto>			#Find - Similar a whatis - busca en las descripciones breves y en las páginas de la base dedatos man
+			###Secciones man
+			#1	General commands
+			#2	System calls
+			#3	Library functions, covering in particular the C standard library
+			#4	Special files (usually devices, those found in /dev) and drivers
+			#5	File formats and conventions
+			#6	Games and screensavers
+			#7	Miscellanea
+			#8	System administration commands and daemons
+manpath					#Muestra el path de los ficheros del manual
+whatis	<texto>			#Busca en las descripciones breves y en las páginas indexadas en la base de datos whatis
+apropos <texto>			#Similar a whatis
+mandb					#Regenera la base de datos de man, whatis 
+makewhatis				#Supuestamente este comando crea la base de datos whatis si no esta disponible - DEPRECATED
+whereis <file>			#busca los ficheros relacionados con un comando
+which	<file>			#busca el ejecutable de un comando
+who				#muestra los usuarios conectados
+whoami			#muestra el nombre de tu usuario
+hostname [<name>]		#Muestra/Modifica el nombre de la máquina
+type <file>		#muestra el orden de ejecucion de los comando
+uname			#muestra informacion del kernel
+	-r			#Version del sistema operativo
+	-a			#All - Muestra toda la informacion del kernel
+*****
+GRUB
+*****
+
+update-grub		#actualizar el grub despues de modificar la configuracion. (genera un nuevo fichero grub.cfg)
+update-grub2	#alias de update-grub (genera un nuevo fichero grub.cfg)
+grub-mkconfig	#alias de update-grub (genera un nuevo fichero grub.cfg)
+grub-install    #Instalar grub2
+grub-md5-crypt 	#Pide una password y te da un md5 que hay que poner en /boot/geub/grub.conf
+mkboot
+	--device <device> <filename?>		#Crear un disco de arranque
+	
+*****************************
+Cambio de estado del sistema:
+*****************************
+
+runlevel			#Muestra el runlevel que está en ejecucion
+
+init <runlevel>		#Cambia el estado del sistema al del runlevel seleccionado
+		0 			#is halt
+		1 			#is single-user
+		2-5 		#are multi-user (some distro uses RUN level 5 to start X [KDE/Gnome])
+		6 			#is for rebooting system
+
+telinit <runlevel>	#Igual que init
+
+systemd-analyze	[opciones]		#Analisis del estado, tiempo de arranque ... de SystemD
+	critical-chain				#muestra el orden de carga de las diferentes unidades
+	plot						# 
+	blame						#Muestra una lista de todas las unidades en ejecución ordenadas por el tiempo que les llevó inicializarse
+								#Esta salida puede ser engañosa debido a que algun servicio puede ralentizarse por estar a la espera de la inicializacion de otro
+
+
+systemd-delta					#muestra las sobrecargas de los targets
+
+
+systemctl	[opciones]	<unit>		#Comando de administracion del sistema en SystemD
+		
+		#Actions
+	get-default						#Muestra el target con el que se inicial el sistema
+	set-default <taget>				#selecciona el target por defecto con el que se va a iniciar el sistema
+	isolate							# cambiar entre runlevels, equivale a telinit
+	start <unit>					# iniciar servicio
+	stop <unit>						# parar servicio
+	restart <unit>					# reiniciar servicio
+	try-restart <unit>				# reiniciar servicio solo si esta en ejecución
+	reload <unit>					# recargar servicio
+	status <unit>					# ver estado de servicio
+	enable <unit>					# Activa un servicio en el arranque	
+	reenable <unit>					# Regenera los enlaces que se llaman por las unidades de arranque (usar si se sobrecarga una unidad por ejemplo)
+	is-enabled <unit>				# Comprueba si una unit se arranca en el inicio
+	is-active <unit>				# Comprueba si una unit esta activa
+	disable	<unit>					# Quitar un unit del arranque
+	list-units						# Mostrar todas las unidades es uno
+	list-unit-files					# Listar todas las unidades 
+	list-dependencies				# ver las dependencias de un servicio
+	reboot							#Reiniciar sistema
+	halt							#Cerrar sistema
+	poweroff						#Apagar la máquina	
+	mask <unit>						#Enmascarar el servicio -  Esto enlaza las unidades a "/dev/null" haciendo imposible arrancarlas. 
+									#Es una version mas fuerte de disable
+	unmask <unit>					#Desenmascarar el servicio
+	snapshot <nombre>				#Crea un snapshot de toda la configuracion del sistema, 
+									# "systemctl isolate actualizacion.snapshot" para revertir el sistema al snapshot
+	delete <unit>					#Eliminar unidades
+	show <unit>						#Muestra el archivo de configuración del <unit>
+	help <unit>						#Muestra la página del manual asociada con una unidad
+	daemon-reload					#Recarga systemd, escaneando en busca de unidades nuevas o modificadas	
+	edit <unit>						#Permite editar configuracion de servicios creando una sobrecarga a la configuracion 
+									#Crea el fichero /etc/systemd/system/<unit>.d/override.conf
+		#Params
+	-? | --all							# Muestra todas las unidades (en uso o no) con la informaion de list units
+	-t | --type <type>					# Filtra las unidades por su tipo <type> = target,service,...
+	-p | --???? "<str>"					#No fuking idea
+	-h | --host <user@host> <command>	#lanzar comandos remotamente como ssh
+	
+	
+	
+update-rc.d <nombre-script_en_init.d> <runlevel?>	#convertir script en daemon, es decir, que se ejecute al inicio de la sesión. (SysV)  
+	-f												#Forzar la eliminacion de symlinks aunque existan en init.d/*
+	
+update-alternatives		#Escoger que programa usar por defecto en caso que haya varios que realizan la misma tarea
+
+chkconfig								#chconfig es el sistema tradicional de RedHat, actualmente está de manera testimonial, ya que utiliza SystemD,
+	--list <servicio>					#muestra todos los servicios o informacion de un servicio en concreto
+	--add <servicio>					#añade el servicio indicado en la configuracion
+	--del <servicio>					#elimina un servicio de la configuracion de system V
+	--level xxx <servicio> [on\off]		#permite activar o desactivar un servicio en un runlevel 
+
+
+
+*******************************
+Identificacion de dispositivos.
+*******************************
+
+	lsusb					#listado de dispositivos conectados a los puertos usb
+		-t					#Tree 
+		-v | -vv | -vvv		#Verbose
+		-s bus:numdis		#Search - Buscar por un dispositivo en concreto
+		
+	lspci					#listado de tarjetas conectadas al bus pci ordenados por número de puerto
+							#Contiente: Configuraciín IRQ de dispositivos, Velocidad de Bus PCI, Información del fabricante...
+		-v					#Vervose - muestra más informacion relacionada con el dispositivo
+		-vv					#Vervose - extra 
+		-vvv				#Vervose - extra extra 
+		-n					#Numérico - Muestra el código numérico en vez del nombre del fabricante
+		-t					#Tree - Muestra la salida como árbol, 
+		-k 					#Kernel - muestra los modulos del kernel que utiliza cada dispositivo
+		-s bus:slot.func	#Search - Busca el dispositivo con el bus slot y func correspondientes
+		-Q					#Query - Consulta a la base de datos central, por si sospechas que la informacion mostrada es incorrecta
+		-M					#Mapping - Invoca al modo de mapeo de bus, el cual realiza un check a todos los dispositivos del dominio 0
+		
+	lsblk					#listado de discos y particiones ordenados en arbol
+		-m | --perms		#Muestra los permisos de los dispositivos
+		-p | --paths		#Muestra la ruta completa de los dispositivos
+		-f | --????			#FileSystem 
+		-S | --????			#Tipo de disco - Útil para saber si son discol locales
+		-v | 				#Verbose - El clásico
+		
+	blkid 	#listado de dispositivos de bloques(discos,..) con sus atributos (UUID,Label,...) muy util junto con fstab
+	
+	lsmod	#listado de los modulos del kernel
+	modinfo <modulo>		#muestra la informacion especifica de un modulo
+	
+	lsb_release				#Imprime información de la distribución 
+		-a | --all			#Muestra toda la informacion disponible
+	
+*****************
+Manejo de streams
+*****************
+
+	cat		#Concatenar ficheros y mostrarlos por la salida estandar
+		-n	#añade numero de lineas
+
+	tac		#Reversed cat - concatena muestra los ficheros en orden inverso
+
+	head
+		-n <numero>		#muestra las n primeras lineas
+	tail	<fichero>		#Muestra las 10 ultimas lineas de un fichero
+		-n 	<numero>		#muestra las n últimas lineas
+		-f 	<fichero>		#forward (deja el stream abierto y muyestra las ultimas lineas añadidas)
+	more
+	less <fichero>
+	grep <patron> <fichero>				#buscar texto usando expresiones regulares al estilo sed (Escapando parentesis de grupos etc.)
+		-c								#count: numero de veces que aparece una expresion
+		-i 								#case Insensitive		
+		-r <ruta>						#Busqueda recursiva
+		-v								#negacion de busqueda: Nos enseña todo lo que no haga match
+		-f <ruta>						#Usa como patrón de búsqueda el contenido de un fichero, ¿creado una busqueda por cada linea?
+		-E '<regEx>' 					#egrep - Permite hacer busquedas que hagan match con expresiones regulares extendidas (sin excapar los caracteres especiales), la expresion debe ir entrecomillada para que no de error sintáctico
+		--extended-regexp '<regex>'		#egrep - Notacion GNU
+		-F "String"						#fgrep - Permite hacer búsquedas que hagan match con un string
+		--fixed-strings					#fgrep - Notación GNU
+	egrep		#Expresiones regulares extendidas
+	fgrep		#Búsqueda literal ("." no es un caracter comodin sinó que solo hace match con un punto,etc...)
+	join 		#combinacion de varios ficheros
+	paste		#mezcla linea a linea cada fichero
+	expand		#nos convierte las tabulaciones en espacios, muy interesante para hacer joins si no estan bien definidos los separadores de las columnas
+	sort		#ordenar las lineas del texto 
+		-k 
+	split		#dividir un fichero en trozos, por defecto en secciones de 1000 lineas
+	tr <buscar>	<reemplazar>		#translate. Sisrve para reemplazar caracteres, borrar o definir espacios
+		-d <texto>  		#borrar
+		-s <texto>			#eliminar duplicados || --squeeze-repeats
+	uniq |#elimina duplicados
+	nl		#numera las lineas
+	pr 		#print, formatea texto para impresion
+	cut		#coger determinadas partesde un fichero  Ejemplo: cut -d : f 3
+		-d <text>	#definir delimitador
+		-f <numero>  #field, seleccionar la columna correspondiente al numero
+	
+	
+	wc		#word count, contar palabras, nos da informacion sobre el contenido del fichero
+	
+	sed [opciones] [parametros][patron][alcance] <fichero> #Buscar y reemplazar
+
+		#ejemplo: sed 's/buscar/reemplazar/g' <fichero>
+		
+		#parametros
+		s #sustituir
+		d #delete
+
+		#patron
+		/texto/reemplazo/
+		
+		#alcance
+		g   #global
+		
+		opciones
+		-i #escribir salida
+		-n #quitar lineas duplicadas
+		<int[,int]>p #print #imprime ese numero de lineas
+		<int[,int]>q #quit<borra filas>
+		
+	tee <fichero>		#duplica la salida estandar mostrandola por pantalla y enviandola a un fichero
+		-a <fichero>	#Añexa al final del fichero en vez de sobreescribirlo	
+	#Ejemplo   ls -la |tee <fichero>
+	
+	xargs <comando> 	#Le pasa a <comando> como parámetro lo que haya recibido xargs por su entrada estandar, se suele usar despues de un pipe.
+		-print0			#util para los nombres de archivos con espacios
+						#Ejemplo:   find /tmp -name <nombre> |xargs 'rm' #revisar
+	
+	diff <ruta1> <ruta2>					#muestra las lineas que son diferentes entre los archivos
+	patch <file_to_patch> <diff_file>		#Interpreta un archivo generado con diff de forma que se pueden aplicar las diferencias a un archivo <file_to_patch>
+	
+	
+*******************
+Gestion de procesos
+*******************
+
+	pstree
+
+	ps 								#Process Status
+		-A							#No mostrar toda la ruta de los procesos
+		--sort <campo>	 			#Muestra la salida ordenada
+		-o <campo campo campo ...>	#Output - Muestra los campos que se le indiquen en los parametros <%mem ... ... >
+		-e							#Every process, Ver todos los procesos usando la sintaxis standart
+		-l							#Long - formato largo, (mas campos)
+		-f							#Forest - Muestra las familias de procesos agrupadas
+		-u [<user>[,<user>]]		#Muestra los procesos del/los usuario(s) - quien lo lanza por defecto
+		
+		#Ejemplos: ps -aux || ps -efl
+		
+	pgrep <regex>		#Devuelve el PID de los procesos que hagan match con la expresión
+
+	lsof [<path>]				#LiSt Open Files	#Listado de los archivos abiertos por pocesos en el sistema [o en un directorio]
+		-i [<addr>]				#Selecciona los accesos de red restringiendo opcionalmente los que usan la <addr>
+			<4|6>				#Version IP
+			<protocol>			#protocolo de conexion - tcp | udp
+			<@host|addr>		#nombre de host o direccion ip
+			<:service|port>		#Nombre de servicio o numero de puerto
+		-l						#Impide la conversion de los UID en nombres de usuario
+		+|-M					#Habilita(+) o Deshabilita(-) informacion sobre registros de puertos que utiliza NFS y otros servidores
+		-n						#Evita la resolucion de nombres de las ip
+		-P						#Evita la conversion de puertos en nombres de servicio
+		-t						#Muestra solo los PID (util para scripts con kill)
+		-X						#Omite informacion sobre archivos TCP, UDP y UDPLite
+		
+	fuser <path>	#Lista procesos que utilizan un archivo
+	
+	top 	#muestra una visión en tiempo real del sistema en ejecución.
+		d 	#en interactivo - 
+		p	#en interactivo - 
+		k	#en interactivo - matar procesos
+		p 	#en interactivo - ordenar por uso de memoria
+		m	#en interactivo - ordenar por uso de procesador
+		r	#en interactivo - renice, camviar prioridades
+
+	mem 		#ver memoria libre -no en todas las distros-
+		-m		#en megas
+	free		#Reporte de uso de la memoria	
+		-m 		#en megas
+		-g		#en gigas
+		
+	uptime		#Tiempo encendido,usuarios conectados, carga media de CPU	
+	vmstat		#Estado de uso de la memoria virtual 
+	pidof <nombre_proceso> #saber el id de un proceso a través del nombre
+
+	bg 			#mandar el proceso a 2o plano el ultimo proceso detenido
+				#formas de mandar a 2ºplano cuando un proceso está acupando la consola:
+					#Pulsar Ctrl+z para pausarlo y lanzar el comando bg para iniciarlo en segundo plano
+					#Lanzar el proceso con "&" al final. Ej: 
+	fg [<n>]	#mandar el ultimo proceso detenido a 1er plano, en caso de tener varios procesos se le pasa <n> como numero de proceso segun el orden de lista ofrecido por jobs
+	jobs 		#Lista de los procesos en segundo plano
+	
+	kill [Opciones/Señales] <PID> #mandar señales a procesos -15(-SIGTERM) por defecto		
+		-l             		#Muestra la lista de IDs y señales disponibles para enviar a un proceso
+		-1	|| -SIGHUP		#HangUP	#
+		-2	|| -SIGINT  	#INTERRUMPIR, CTRL+C
+		-9  || -SIGKILL 	#
+		-15 || -SIGTERM		#TERMINAR - Cerrar ordenadamente
+		-18	|| -SIGCONT		#CONTINUAR - Continuar la ejecución de un proceso parado	
+		-19	|| -SIGSTOP 	#PAUSAR, = CTRL+Z
+		-1 			   		#PID Especial que representa todos los procesosexcepto init y el propio proceso kill || "The Purificator"
+		%[jobs_id]			#Mata procesos en segundo plano, el id es ofrecido por el comando "jobs"
+		
+	nohup	#permite mantener la ejecucion de un programa lanzado por un usuario que se ha deslogueado. el proceso se ejecuta de forma independiente de la sesion del usuario.
+			
+	killall <nombre_proceso> #matar a traves del nombre del proceso
+
+	shutdown [OPCIONES] [tiempo_retardo] "MENSAJE"   #otro alias para apagar el sistema
+	 -h | $halt     	  #Cierra sistema
+	 -p | $poweroff 	  #Cierra sistema y apaga
+	 -r | $reboot 		  #Cierra sistema, apaga y enciende
+	 -k "text"| $wall     #Mensaje de Aviso a todas las sesiones iniciadas,no apaga
+	 -c 				  #Cancelar el apagado programado
+
+	  now    #Ahora
+	  5      #En 5 minutos
+	  22:40  #En una momento del mismo día
+	 (Revisar estas sintaxis)
+	 
+	nice [opciones] [comando] #Arrancar un proceso con una prioridad determinada, por defecto es nivel 10, va de -20(mas prioridad) a 19(meos prioridad) 
+		-n [prioridad]		#iniciciar con una prioridad en concreto
+		
+	renice [prioridad] [pids] [user] #alteramos el nice(prioridad) de un proceso sin reiniciarlo
+	
+	batch	#lanzar comandos cuando la cpu baje de una carga determinada
+	at		#lanzar comandos en determinado momento
+	atq		#at queue, mostrar la cola de procesos de at
+	atrm	#eliminar procesos de la cola de at
+	
+	
+	
+*****************************
+Gestión de modulos del kernel
+*****************************
+
+	lsmod								#Listar los módulos del kernel
+	modinfo <modulo>					#Muestra la informacion especifica de un modulo. (Importante: dá la localizacion del modulo en las librerias)
+		-p  <modulo>					#Parameters - Listar los parametros que se le pueden pasar a un modulo en concreto
+	insmod <ruta_modulo> 				#Instalar módulo (no tiene en cuenta dependencias)
+	rmmod <modulo>						#Eliminar módulo (no tiene en cuenta dependencias)
+	modprobe <modulo>					#Gestionar módules del kernel y sus dependencias (algunos módulos tienen dependencias en ...
+										#otros que si no están, fallarán)
+			-v | -vv | -vvv				#Vervose - a diferentes niveles de información
+			-r <modulo>					#Remove  - Eliminar modulo
+			-f <modulo>					#Force   - Forzar la instalacion de un módulo
+			-n | --dry-run				#Not Install -  simula la instalacion de un módulo, junto con vervose puede dar informacion interesante
+			--show-depends <modulo>		#Muestra las dependencias de un módulo
+	depmod								#Crear archivos .dep requeridos por modprobe.		
+		-a
+	
+*******************	
+Gestion de usuarios
+*******************
+
+su <usuario> 						#Cambia de usuario, por defecto a root
+	- | -l | --login <usuario>		#Login - Provée un entorno similiar al de un usuario que se ha logueado directamente
+
+login <usuario>						#Loguearse como <usuario> en el sistema
+exit								#Cerrar la sesion de usuario
+
+passwd [<user>]				#cambiar contraseña propia(por defecto) o de un usuario
+	-l | --lock	<user>		#Lock - Bloquear cuenta de usuario
+	-u | --unlock <user>	#Desbloquear - 
+
+pwconf		#Convertir las contraseñas de shadow a contraseñas compatibles md5
+
+id <nombre_usuario>		#muestras los ids y nombres de los usuarios y grupos, por defecto el usuario logueado.
+
+useradd	<nombre_usuario>	#el comando base
+	-c 	#comment
+	-d	#home-dir
+	-e	#expire-date
+	-f 	#inactive-days
+	-g	#grupo por defecto
+	-p	#password
+	-s	#shell
+	-k  #skeleton
+	-m	#crear home
+userdel [opciones] <nombre_usuario>
+	-r #elimina todo el contenido (home, pool de correo, grupos)
+
+usermod	<user>								#Modificar configuracion de las cuentas de usuario
+	-a[G] <grupo> <user>					#Append - Ejemplo: -aG = append Group 
+	-u | --uid	<UID> <user>				#Reemplaza el UID
+	-g | --gid <id> <user>					#Reemplaza el grupo principal del usuario por el correspondiente
+											#También cambia el grupo de los archivos del home del usuario
+	-G | --groups <grp1>[,<grp2>] <user> 	#Reemplaza la lista de gupos suplementarios por los introducidos (ver append para añadir)
+	-l | --login <newlogin> <user>			#Cambia el nombre del usuario
+	-s | --shell <shell> <user>				#Cambia la shell
+
+	
+adduser	<nombre_usuario>		#script que pregunta interactivamente, utiliza useradd 
+deluser	<nombre_usuario>		#eliminar un usuario (utiliza userdel)
+		<nombre_usuario> <nombre_grupo>		#eliminar grupo de un usuario	
+
+	
+chage <user>		#CHAnge AGE -  Pregunta interactivamente por una nueva configuracion de la caducidad de la contraseña 
+	-l | --list		#List - Lista el estado de la caducidad de la contraseña
+	-L | --lock <user>						#Bloquear un usuario
+	-U | --unlock <user>					#Desbloquear usuario
+	-d <N_days> <user>						#<N_days> restantes para reiniciar la contraseña a <usuario>
+	
+	
+groups [<user>]		#muestra los grupos de <user> Por defecto del usuario que lanza el comando
+groupadd [opciones] <nombre_grupo>	#añadir grupo
+	
+groupmod [opciones] <nombre_grupo>	#modificar 
+groupdel
+addgroup
+delgroup
+
+
+***********************
+particionado y formateo
+***********************
+
+	||--- Particionado ---||
+	fdisk				#Comando para crear o listar particiones
+		-l [<disk>]	  	#Listar particiones, todas por defecto. Muestra el tipo de las paticiones entre otras
+		<device>		#Crear una particion en el dispositivo <device>
+
+			#Opciones de fdisk en la linea de comandos interactiva
+				a Conmuta el indicador de iniciable
+				b Modifica la etiqueta de disco bsd
+				c Conmuta el indicador de compatibilidad con DOS
+				d Suprime una partición
+				l Lista los tipos de particiones conocidos
+				m Imprime este menú
+				n Añade una nueva partición
+				o Crea una nueva tabla de particiones DOS vacía
+				p Imprime la tabla de particiones
+				q Sale sin guardar los cambios
+				s Crea una nueva etiqueta de disco Sun
+				t Cambia el identificador de sistema de una partición
+				u Cambia las unidades de visualización/entrada
+				v Verifica la tabla de particiones
+				w Escribe la tabla en el disco y sale
+				x Funciones adicionales (sólo para usuarios avanzados)
+
+	gdisk				#Igual que fdisk para dispositivos GPT
+	
+	cfdisk			  #Particionado con un toque visual
+	lsblk			  #listar discos y sus particiones
+	resize2fs 		  #redimensionar una particion
+
+	||--- Formateo ---||
+
+	mke2fs							#programa original, mkfs es un alias de este programa
+		-t <fs-type>				#Especificar el tipo de sistema de archivos (ext2,ext3,ext4,...)
+		-m <percent>				#Porcentaje de bloques reservados en el disco
+		-b <block-size>				#Especificar el tamaño de los bloques(1024,2048,4096)
+		-c     						#Comprueba el dispositivo en búsqueda de bad blocks antes de crear el sistema de archivos en modo Fast Read Only Test.
+		-cc							#Comprueba el dispositivo en modo Slow Read/Write test.
+		-F 							#Force
+		-i							#Bites per Inode Ratio
+		-I							#Tamaño de Inodos (potencias de 2 iguales o mayores a 128)
+		-j							#Journal - Crear el sistema de archivos con un ext3 jorunal.
+		-L <Label>					#Label - Asigna una etíqueta el sistema de archivos
+		-N							#Número de inodos que se van a crear(reemplaza la opcion de ratio bites/inodos)
+	
+	mkfs -t <type> <ruta_particion> #crea un sistema de archivos de un tipo, por defecto ext2
+	mkfs.<type> <ruta_particion>    #crea particion de un tipo -- mkfs.bfs, mkfs.cramfs, mkfs.ext2, mkfs.ext3, mkfs.ext4, mkfs.ext4dev, mkfs.fat, 
+									#					       	mkfs.minix, mkfs.msdos, mkfs.ntfs, mkfs.vfat									
+									#Ejemplo para hacer una FAT32 - mkfs.dos -f 32 </ruta/disco/>
+
+	ecryptfs						#Herramienta de encritpacion de un sistema de archivos - crear un directorio oculto para almacenar los datos encriptados en él.
+		#Ejemplo mount –t ecryptfs <.hidden_dir> /data
+
+
+									
+	mkswap <dispositivo>            #crear una swap, tambien se puede crear un archivo que haga de swap con dd. 
+									#se pueden tener hasta 16 particiones de swap
+		-c							#Check - Usa badblocks para comprobar el sistema de archivos
+		
+		
+	mkisofs <path>			#Crear un sistema de archivo ISO-9660 con los datos que encuentra en <path>
+		-r					#Activa extensiones Rock Ridge
+		-J					#Activa extensiones Joliet
+		-r					#Activa extensiones Rock Ridge-J					#Activa extensiones Joliet
+		-V "VolName"		#Configura el nombre del volumen
+		-f					#Activar la funcionalidad de vinculos simbólicos
+		-udf				#Añadir soporte udf(DVD file system)
+		-hfs				#Añadir soporte HFS(Apple File System)
+		-o <path.iso>		#Ruta donde va a poner el sistema ISO generado
+		-b <bootdisk-iso>	#Crear una disco iniciable desde una imagen
+
+	
+	genisofs				#Alias de mkisofs
+	
+	mkudffs					#Crear s.d.a de tipo UDF (DVD)
+	
+	cdrecord <path.iso>		#Grabar un cd con el s.d.a <path.iso> - para CD
+		dev=<rw-device>		#Configurar el dispositivo que va a grabar el disco
+		Speedy=<n>			#<n> es el numero de X a la que se va a grabar los datos
+
+	growisofs <path>			#Combina mkisofs y cdrecord - para DVD y BlueRay
+		-r						#Activa extensiones Rock Ridge
+		-J						#Activa extensiones Joliet
+		-V "VolName"			#Configura el nombre del volumen
+		-speed=<n>				#Determina velocidad de grabacion
+		-Z	<path[=<fie.iso]>	#Configuracion de dispositivo que se va a grabar [u de imagen iso]
+		
+		
+	||--- Mount ---||	
+
+	mount [options] <dispositivo> <punto_montaje> 	#Montar un dispositivo, solo root puede utilizar este comando. 
+													#Si el dispositivo existe en el /etc/fstab, solo es necesario pasarle dispositivo/punto de montaje al comando
+		  -a | --all								#monta todas las particiones de fstab que no tengan la opcion noauto marcada.
+		  -r | --read-only							#montar como solo lectura
+		  -w | --rw									#monta como lecura/escritura
+		  -t | --types <vfstype>					#especificar el tipo del sistema de archivos
+		  -L <"LABEL">								#Montar por etiqueta
+		  -U <"UUID">								#Montar por UUID
+		  -o | --options <opcion>					#ejecutar opcion a una particion (remount,...)
+			<options>
+			loop									#Montar archivo como si fuera un dispositivo Ej mount -o loop ./file.img /mnt/image
+			auto/noauto								#Monta el FS cuando root usa mount -a
+			user/nouser								#Los usuarios normales pueden montar el sistema de archivos, el que lo monto puede desmontarlo
+			users									#Similar a "user" salvo porque cualquier usuario puede desmontar el FS
+			owner									#Similar a user, pero el usuario ademas debe ser el propietario del dispositivo
+			remount									#Permite cambiar opciones del FS montado al volver a usar el comando mount sin desmontarlo
+			ro										#Monta el sistema de archivos como Read Only
+			rw										#Monta el FS como Read/Write
+			uid=<valor>								#Define al usuario correspondiente al uid <valor> como propietario de todos los archivos
+			gid=<valor>     						#Define al grupo correspondiente al gid <valor> como propietario de todos los archivos
+			umask=<valor>							#Define la mascara que dictamina el valor de los permisos para TODO el FS
+			dmask=<valor>							#Define la mascara que dictamina el valor de los permisos para todos los DIRECTORIOS del FS
+			fmask=<valor>							#Define la mascara que dictamina el valor de los permisos para todos los ARCHIVOS del FS
+			conc=<code>								#Conversion de archivos <code>=[binary|text|auto]	
+			norock									#Desactiva la extension RockRidge
+			nojoliet								#Desactiva la extension Joliet
+			credentials=<filepath>					#SMB/CIFS - Pasar ruta a archivo donde se encontraran las opciones username/password
+			username=<username>						#SMB/CIFS - Junto con password se pueden pasar estas opciones para autenticar en vez del archivo credentials
+			password=<password>						#SMB/CIFS - Junto con username se pueden pasar estas opciones para autenticar en vez del archivo credentials
+			
+	umount <dispositvo|punto_montaje>	#desmontar un dispositivo
+		-a 								#desmonta todas las particiones de fstab
+		-f 								#forzar desmontado
+		-r								#Pasar montaje a modo Read Only
+		-t <type>						#Desmontar todos los FS de este tipo
+		-l								#Lazy - Espera a que la unidad deje de estar ocupada para desmontarla
+		
+	swapon [opt] <particion>    #montar swap
+		-a | --all				#Monta las swaps del fstab excepto que tengan opciones "noauto"
+		-s | --summary			#Display swap usage summary by device	
+		-e | --ifexists			#Salta dispositivos que no existen sin mostrar error
+		-p | --priority <n>		#Prioridad asignada a diferentes swaps <n>=[0-32767]
+		-a | --summary			#Muestra informacion resumida
+		-L "Label"				#Montar espacio de intercambio por su etiqueta
+		-U "UUID"				#Montar espacio de intercambio por su UUID
+		
+	
+	swapoff <particion>   	#desmontar swap
+	
+	||--- LVM ---||
+	pvcreate <particion>    #Inicia un disco o particion usado por LVM
+	pvdisplay 
+	vgcreate  <nombre_grupo_volumenes> <physical_volume_1> <physical_volume_2> <physical_volume_2 ...>  # Crea un grupo de volumenes a traves de un disco fisicos
+	vgscan       #
+	vgdisplay	 #
+	vgremove	<nome_grupo>
+	vgextend      #Añadir volumenes disicos a un grupo de volumenes
+	lvcreate -L <size> -n <nombre_volumen_logico> <nombre_grupo_volumenes>     #Creamos un volumen lógicos
+	lvextend	-L <size> <ruta_volumen_logico>  #Extender tamaño de columen lógico
+	lvremove <ruta_volumen_logico> #eliminar volumen
+
+
+
+
+*******************************
+Gestión del sistema de archivos
+*******************************
+
+	|| --- Monitorizar el uso del disco ---||
+
+	df [opciones] [archivos]  # Disk Free - Uso del espacio en sistemas de archivos
+		-a					  #ALL - Incluye pseudo sistemas de archivo (proc,sys...)
+		-h                    #human redable
+		-i			          #muestra los inodos libres
+		-l					  #Omitir los archivos en red
+		-T					  #Tipo de la particion (si ya está montado)
+		
+	du	<ruta>		#Disk usage - Uso del espacio en directorios, por defecto busca en el directorio actual
+		-h			#Human
+		-c			#lista todo y al final enseña el resumen
+		-a			#all
+		-s			#evita subdirectorios
+	
+	|| --- Check de sistema de archivos ---||
+	(comprobar,verificar y corregir los sistemas de archivos)
+	
+	
+	parted			#Sincroniza discos duros??
+
+	fsck [opciones] <particion>	#filesystem check
+		-A		#Comprueba todos los sistemas de archivo marcados en /etc/fstab
+		-t  <fs_type>	#fs Type
+		-f				#force
+		-p  			#no preguntar 
+		-y  			#asume yes como respuesta a las preguntas interactivas
+		-v				#vervose
+		-c  			#enseña barra de progresion muy bonita
+		-n				#checkeo no destructivo, para averiguar si hay errores en unidades montadas
+	
+	fsck.<type>		#FSCK donde type es el tipo de sistema de archivos.
+
+	efsck			#para ext
+
+	e2fsck [opciones] <dispositivo>			#para ext2
+		-p # indica que se intenten reparar automáticamente los daños encontrados
+		-v # modo verbose, o sea, que nos muestre en pantalla los errores
+		-y # responderá Sí a todas las preguntas como ¿desea recuperar X sector?, para hacer el proceso de veras automático
+
+	dosfsck			#para msdos
+	fsckvfat		#para vfat
+
+	badblocks [opciones] <dispositivo>	#Recuperar sectores dañados
+		-s # indica que se mostrará el proceso con por cientos
+		-v # modo verbose, lo cual significa que nos mostrará el número de errores
+		-n # indica que se intentará usar un modo no destructivo, o sea, que se intentarán recuperar esos sectores pero también la información que estaba en ellos
+		-f # fuerza la lectura y escritura en dispositivos que estén montados.DANGER!!!!
+
+	testdisk <dispositivo> #del paquete testdisk 
+		
+	dumpe2fs [opciones]	 <particion>	#informacion del sistema de archivos
+		-h								#Omitir informacion sobre descriptores de grupo(informacion de debug)
+		-b								#listar los bloques marcados como dañados
+	
+	xfs_info <particion>					#Parecido a dumpe2fs para particiones XFS
+	debugreiserfs [opciones] <particion>	#Parecido a dumpe2fs para particiones ReiserFS
+		-J									#Muestra la cabecera del registro
+		-p									#Extrae metadatos del sistema a una salida estandar
+		
+	
+	tune2fs	[opciones] <particion>		#Ajustar parámetros para sistemas de archivos ext2/ext3/ext4 
+		-l <partition>					#List - lista la informaion de la particion
+		-c <n> <d|w|m>	<part>			#Max Mount Count - obliga  a checkear el sistema cada <n> montajes [en (d)ias - (w)semanas - (m)meses]
+		-C <n>	<part>					#Mount Count - Modificar el contador de veces que se ha montado el disco
+		-i <n> <d|w|m>	<part>			#Interval - cambiar el intervalo de tiempo de comprobación del disco a <d>ias a <w>semanas,<m>eses...
+		-j								#Journaling - Añadi un sistema de respaldo de transacciones a un sistema de archivos.
+										#En la practica añadir un journaling ext2 es equivalente a un ext3
+		-m	<n>							#Definir bloques reservados para ser utilizados por root. <n> es el porcentaje a reservar,por defecto un 5%, en discos de muchos gigas puede interesar reducirlo o dejarlo a 0 si el FS solo se utiliza para almacenar ficheros.
+		-r	<n>							#Definir bloques reservados para ser utilizados por root. <n> es el numero de bloques.
+		-L "LABEL"						#LABEL - Permite definir una etiqueta para el sistema de archivos.
+		-U "UUID"						#UUID - Cambiar UUID del dispositivo
+		-T <fecha> <part>				#Time - Cambiar fecha en la que se ha hecho el ultimo fsck
+		
+	xfs_admin [opciones] <particion>	#Como tune2fs para XFS
+		-j								#Activa la version 2 del jounaling (puede mejorar rendimiento)
+		-l								#Obtener etiqueta
+		-L "Label"						#Configurar etiqueta
+		-u								#obtener UUID
+		-U <uuid>						#Configurar UUID
+		
+	reiserfstune [opciones] <particion> #Como tune2fs para ReiserFS
+		-u | -uuid <uuid>				#Configurar UUID
+		-l | --label <"Label">			#Configurar etiqueta
+		-m | --max-mnt-count <n>		#Numero maximo de montados antes de pasar fsck
+		-  | --check-interval <interv>  #intervalo de tiempo que define cada cuanto se ha de hacer fsck
+		-C | --time-last-checked <time> #Establecer fecha y hora de la ultima comprobacion
+		
+		
+	debugfs <dispositivo>				#Consola interactiva que permite depurar el sistema de archivos. (para sistemas EXT) - NO USAR CON FS MONTADOS!!!
+		<comandos>
+		stats | show_super_stats		#Mostrar informacion del superbloque del sistema de archivos
+		stat <filename>					#Mostrar informacion del nodo indice
+		lsdel | list_deleted_inodes		#Muestra una lista de los inodos eliminados
+		undelete <inode> <nombre>		#Deshacer borrado del fichero que estaba en el <inodo> y darle el <nombre>
+		write <in-file> <out-file>		#Extraer archivos del sistema de archivos
+		help | ? | lr | list_request	#Obtener ayuda
+		quit							#Salir
+
+	xfs_db <dispositivo>				#Como debugfs para XFS
+	
+	
+	hdparm								#HardDisk(PATA) parameters - Configurar y testear parametros del disco
+		-d<n>							#DMA - n=0 modo PIO , n=1 modo DMA
+		-p <modo>						#PIO Transfer Mode <modo>=[0-5], a mas alto mejor rendimiento
+		-X <modo>						#DMA Transfer Mode - udma5 o udma6 da muy buen rendimiento y funciona habitualmente
+		-c <modo>						#Consulta o Establece el estado de transferencia en 32bits [0, deshabilita, 1 habilita, 3 habilita especial]
+		-S <wait_time>					#Funcion de ahorro de energia [0 deshabilita]
+		-v								#Ver diferentes parametros del disco
+	sdparm								#HardDisk(SATA) parameters - Configurar y testear parametros del disco
+		-a | --all						#Muestra informacion del dispositivo
+		-e | --enumerate				#Informacion sobre paginas y campos que se pueden ajustar
+		-f | --flexible					#Corrige problemas en la interpretacion de respuestas por drivers o dispositivos defectuosos
+		-g | --get <field>				#Recuperar el valor de un campo
+		-i | --inquiry					#Mostrar páginas en modo consulta de dispositivo
+		-l | --long						#Crea salida adicional con muchos comandos
+		-s | --set=<STR>=<n>			#Establece un valor en un campo especifico - CUIDADIN AL USARLO
+		-6 | --six						#Modo de interfaz en 6bytes (ahora se usan 10, util para SCSI antiguos)
+		
+		
+	mt -f <device> <action> [cuenta] [args]		#Controlar dispositivos de cinta [cuenta]=<n> archivo
+		<actions>
+			fsf				#Mueve hacia adelante la cuenta de archivos
+			bsf				#Mueve hacia atras la cuenta de archivos
+			eod | seod		#Se mueve hacia el final de los datos de la cinta
+			rewind			#Rebobina la cinta
+			offline | rewoffl		#Rebobina y expulsa la cinta
+			retension				#Rebobina, la lleva hasta el final y vuelve a revobinar (puede mejorar fiabilidad de cintas en desuso)
+			erase					#Borra la cina (normalmente solo marca como si estuviera vacia, no borra los datos)
+			status					#Muestra informacion sobre el estado del dispositivo
+			load					#Carga una cinta en la unidad
+			compression <n>			#Des/Habilita la compresion <n>=[0|1]
+			datcompression			#Similar a compression
+			
+	smartctl <disk>						#Obtener informes de SMART
+		-a								#All
+	
+	cd  <ruta>   #Cambiar Directorio
+		~		 #home
+		-		 #Volver al directorio anterior
+		
+	mkdir 						#crear directorio
+		-p <ruta/parent/child>	#Parent - Crear directorios padre
+	rmdir	#eliminar un directorio
+		
+	file <ruta>				#Determina el tipo de fichero (Texto,Bloque,...) usando la base de datos de definiciones de archivos.
+		-s	<ruta>			#Permite obtener información de archivos de bloque o de caracter. (Código de la partición...)
+		
+	stat <file/filesystem>	#Muestra información de bajo nivel del fichero (Tamaño, Bloques, Inodo, Permisos, etc...), ¿informacion del archivo en la tabla de inodos??
+	
+	od <fichero>		#Octal Dump - Mostrar el contenido de un fichero binario en formato octal (puede mostrar otros formatos) 
+	hexdump <fuchero>	#HEXadecimal DUMP - Mostrar el contenido de un fichero binario en formato hexadecimal (puede mostrar otros formatos)
+
+	touch [opciones] <ruta> 	#crear fichero - Cambia el Modify Timestamp por la "NOW"
+		-d | --date="DATE"		#Modifica timestamp al estilo del comando date
+		-t <MMddhhmm[[CC]AA]>	#cambiar el Modify Timestamp por la que le digamos <122308301983> -> 08:30 23/12/1983
+		-a | --time=<hora>		#Cambia la hora de acceso pero no la de modificacion
+		
+
+	ln <ruta> <link>		#Crea un enlace duro llamado <link> apuntando al fichero <ruta>
+		-s <ruta> <link>	#Crea un enlace simbólico llamado <link> apuntando al fichero <ruta>
+		-d	<dir> <lnkdir>	#Crear enlace de referencia a directorio, normalmente no deja pero se puede intentar
+		-f | -i				#Bora todos los enlaces previos, -i es similar pero pregunta interactivamente
+		
+	unlink <ruta>			#Libera el inodo correspondiente al fichero destruyendo todos sus enlaces
+
+
+	ls	<dir>   	#listar archivos - "<dir>" Muestra el contenido del directorio - "<dir>/*" Muestra el contenido de directorio y subdirectorios
+		-l			#List - Muestra en forma de lista con informacion extra
+		-a			#con archivos ocultos
+		-d			#No buscar dentro de directorios
+		-R			#Recursive - Se lista el contenido de los directorios recursivamente
+		--color		#Se colorea el listado segun el tipo de archivos
+		-F			#Mostrar tipo de archivo (se agrega un caracter al final) - util si no funciona el coloreo
+						"/" - Directorio
+						"|" - Pipe
+						"@" - Enlace simbólico
+						"=" - Socket
+						"*" - Ejecutable
+		-t 			#Time Sorting
+		
+			#File Globbing - Comodines y reglas de expansion:
+					"?"		#Representa un caracter -> b??p - baap,babp,...bbap...bzzp
+					"*"		#Representa uno o más caracteres -> b*p - bap,baaaaaaaap... bzzzzzzp.
+					"[]"	#Conjunto de caracteres	-> b[ae]p	- bap,bep.	
+
+			#Ejemplos de Uso:
+			ls -lart (list all reverse timesort)
+
+
+	lsattr <file>							#Listar los atributos de un archivo
+	
+	cp <ruta_origen> <ruta_destino>	#copiar archivos
+		-a 		#copia recursivamente, respeta los permisos originales, copia los enlaces en vez del destino de los mismos
+		-u		#Update - Copia archivos solo si son mas recientes.
+		-p		#Preserve - conserva la propiedad y los permisos
+		-R		#copiar recursivamente ,(copia el destino de los enlaces en vez de los enlaces)
+		-s		#crea un enlace simbolico
+		-v 		#vervose
+		-f		#Force - forzar sobreescritura
+		-i		#Interactive - Se le pregunta al usuario que hacer en caso de conflicto
+		
+	mv <ruta_origen> <ruta_destino>  #Mover / Renombrar
+		-R		#copiar recursivamente ,(copia el destino de los enlaces en vez de los enlaces)
+		-v 		#vervose
+		-f		#Force - forzar sobreescritura
+		-i		#Interactive - Se le pregunta al usuario que hacer en caso de conflicto
+
+		rm <ruta> #elimina un fichero/directorio
+		-r <directorio> #recursivamente
+		-d <directorio> #elimn directorio
+		-i <archivo> 	#Pregunta antes de borrar
+
+	
+
+	rsync	#sincronizar archivos en local o remoto creando una lista de incrementales - muy util para backups ??  -- DIRVISH es un buen programa de
+		-r	#para que recorra toda la estructura de directorios
+		-l  #para que mantenga enlaces simbolicos
+		-p	#para que mantenga permisos en archivos y subdirectorios
+		-t	#para que mantenga la hora y fecha
+		-g	#para que mantenga grupo
+		-o	#para que mantenga dueño (owner)
+		-D	#para que manenga archivos de dispositivo (root) 		en resumen el modo -a es el modo Archive.
+		-e <ssh>	#tunnel ssh
+		-v[v]	#Verbose
+		--exclude=<dir> 	#excluye directorio o archivo a copiar
+		
+		-- Modo de Uso: --
+			- Lanzar orden de sincronizacion desde mi equipo al equipo remoto 192.168.1.152
+			
+				rsync -e ssh -avvz /var/www/http/ 192.168.1.152:/var/www/http/
+				rsync -e ssh -avvz /var/lib/mysql/ 192.168.1.152:/var/lib/mysql
+		
+	rdiff				#que genera archivos delta con la diferencia entre dos archivos, que puede ser aplicada a uno para convertirlo en el otro en cualquier momento.
+	
+	rdiff-backup		#que utiliza rdiff para mantener espejos de backup de un directorio a través de una red. Rdiff-backup almacena delta rdiff incrementales, lo que permite recrear el directorio en cualquier punto de backup.
+	
+
+	dump		#ext2/3/4 filesystem backup
+	restore		#restaurar backups hechos con dump
+	
+	tar	[opciones] <ruta_paquete> <ruta_a_empaquetar>	#empaqueta, comprime y extrae archivos 
+		-f [host:]<file.tar>		#se utiliza para referirse al fichero que se va a crear, por eso va antes la ruta del paquete que se va a crear
+		-t | --list					#Enumerar ficheros de un talball
+		-x | --extract | --get		#eXtraxt - Extrae los archivos de un tar
+		-c | --create				#Create -	Crea un nuevo tar
+		-A | --concatenate			#Concatenar dos tarballs
+		-r | --append				#Añade ficheros a un tarball
+		-u | --update				#Añade ficheros que son mas recientes que el archivo tarball
+		-d | --diff | --comapre		#Compara un archivo con los ficheros del disco
+		-C | --directory <dir>		#Cambiarse al directorio <dir> antes de terminar las operaciones
+		-g | --listed-incremental <archivo>		#Incremental - realizar copia de seguridad incremental, <archivo> es la lista de archivos previamente archivados
+		-l | --one-file-system		#Copia o restaura solamente un sistema de archivos/particion
+		-M | --multi-volume			#Multiple - para indicar que se realizará en múltiples volúmenes
+		-L | --tape-lenght <n>		#Lenght - para indicar el tamaño del volumen (en bytes o KB?)
+		-z | --gzip | --gunzip		#Procesa un archivo mediante gzip
+		-j | --bzip2				#procesa un archivo mediante bzip2
+		-J							#procesa un archivo mediante xz
+		-v | --verbose				#Verbose
+		-W | --verify				#Verificar el archivo despues de escribir en el
+		-p | --same-permissions		#mantener permisos de los archivos
+		-P | --absolute-paths		#Mantiene la / inicial de los nombres de archivos
+		   | --exclude <file>		#Excluir fichero del tar
+		-X | --exclude-from <file>	#Excluye del archivo los ficheros listados en <file>
+		-tzf <file.tar>				#listar ficheros de un tarball comprimido
+	
+	zip	#Comprimir ficheros a zip
+		-l <zipfile>	#listar ficheros en <zipfile>
+
+	unzip <zip_file> <filter>				#Descomprimir ficheros 
+											#<filter> = "*.png,*/*.png,...", descomprime solo los ficheros que hagan match con la mascara
+		-d <dest_dir> 						#Directorio - descomprimir en <dest_dir>
+		
+	
+	cpio									#Crea archivos que contienen archivos
+		-A | --append						#Añade datos a un archivo existente
+		-t | --list							#Muestra una tabla de contenidos para una entrada
+		-J | --format=<formato>				#Usa <formato>=[bin|crc|tar] para el archivo contenedor
+		-F | --file=<file>					#Utiliza <file> como contenedor de archivos (por defecto usa STDOUT)
+		-O 									#Utiliza <file> como contenedor de archivos (sin redirecion de STD)
+		-I <file>							#utiliza <file> en vez de la STDIO (sin redirecion de STD)
+		-o 									#Comprimir datos
+		-i 									#Descomprimir datos
+		-a | --reset-access-time			#reinicia el tiempo de acceso tas leer para que parezca que no ha sido leido
+		-E | --patterm-file=<filen>			# utiliza <file> para leer una lista de archivos a extraer
+		-u | --unconditional				#Reemplaza todos los archivos sin pedir confirmacion
+		-v | --vervose						#Vervose
+		
+	dd						#copiar sector a sector, clonar
+		if=<origen>			#input fomat
+		of=<destino>		#output format
+		bs=<size>			#block size
+		count=<n> 			#numero de bloques a copiar
+		skip=<n>			#Salta <n> bloques de entrada
+		seek=<n>			#Empieza escribiendo <n< bloques en el archivo de entrada
+		conv=<conversiones> #Aplica reglas de conversion de una lista <conv>=[noerror|...]
+		Ejemplo:
+			find /home -name 'Z*log*N' |sort -d |nl > root_home_files_pattern.txt 
+	
+	
+	find <ruta> [opciones]				#buscar ficheros
+		-name <texto>					#Buscar en el nombre de los archivos
+		-regex <regex>					#Hay que tener en cuenta que puede dar las rutas enteras, por lo que puede ser recomendable poner al inicio de la expresion regular un .* 
+		-perm [modificador] <permisos>	#modificador "-" -> exactamente esos permisos modificador "/" -> al menos esos permisos
+		-type <tipo_archivo>			#Buscar por tipos de archivo - f=file d=directorio l=link ...
+		-size [+|-] <tamaño><Unidad> 	#Unidades: c=bytes k=kilobytes M=megas
+		-gid <group_id>					#ID de grupo
+		-group <nombre_grupo>			#Nombre de grupo
+		-uid <user_id>					#ID de usuario
+		-user <nombre_usuario>			#Nombre de usuario
+		-maxdepth <int>					#Profundidad máxima de carpetas
+		-prune							#no profundiza en las carpeta
+		-o								#or, sirve para buscar por diferentes opciones EJ: find /etc \(-name *.conf -o -name *.defs \)
+		-exec <comand> {} [+|;]  		#ejecuta el comando, {} representa el fichero encontrado. Para decir como deben ser puestos los argumentos encontrados en el 									  comando se utiliza el "+" o "\;", notese que hay que escapar el ";" para que no lo interprete como partedel comando 
+		
+	locate <file>		#buscar archivos, tiene una base de datos de todo el sistema de archivos.
+	updatedb			#actualizar la base de datos de la que se sirve locate
+	
+	
+	chown [opciones] <user>:<group> <ruta>	#CHange OWNer - Cambiar usuario y grupo de archivos/directorios
+											#Cambiar solo el grupo con este comando poner solo :<group>
+		-R | --recursive <usr>:<grp> <dir>	#Cambiar propietario recursivamente			
+		
+	chgrp <grupo> <ruta>				#Cambiar el grupo						
+
+	chmod [opciones] <permisos>	<ruta> 	#Cambiar permisos de un fichero, se puede usar el valor octal(0644) o el caracter equivalente (u=rw,g=r,o=r)
+		-R	<permisos> <dir>			#Recursive
+		-v								#Vervose
+
+	chattr [opciones] [atributos] <file>		#Modifica los atributos de los ficheros
+						[+/-]A					#No actualizar el tiempo de acceso
+						[+/-]a					#Solo añadir, 
+						[+/-]c					#El kernel comprime automáticamente los datos al escribir y los descomprime al leer
+						[+/-]i					#Inmutabilidad - el archivo no se puede modificar
+						[+/-]j					#Añadir Journaling al archivo (ext2)
+						[+/-]s					#Borrado seguro - Pone a 0 los sectores del disco ocupados por el fichero
+						
+	chsh <user>					#Pregunta interactivamente por nueva shell
+		-s <shellpath> <user>	#Cambiar la shell por defecto de un usuario
+		
+	chroot	<ruta>		#Enjaular usuarios en un directorio <ruta> que pasará a ser su root. Nunca se podrá salir de él.
+******	
+Cuotas	-	apt-get install quota
+******
+quota
+	-l				#Detalles de las cuotas de disco usadas en el sistema
+
+edquota	<user>   #editar los ficheros de ocnfiguracion de quota
+	-g 	<group>		#editar cuotas de grupo
+	-u	<user> #Comportamiento por defecto
+	-p <usuario_origen> <usuario_clon> <usuario_clon> <...>   #copiar la configuracion de un usuario a otros usuarios
+
+repquota <ruta>	#mostrar la informacion de las diferentes quotas
+	-a		#mostrar todo
+	-g		#mostrar grupos
+
+quotacheck	#mirar las particiones que tienen definidas las cuotas y crean los ficheros
+	-a	#crea los ficheros de todos los sistemas de archivos DANGER!!!!!!
+	-v	#vervose
+	-u	#comprobar cuotas de usuario
+	-g	#comprobar cuotas de grupo
+
+quotaon [opciones] <usuario> <ruta>	#activar quota
+	-uv
+
+quotasoff	<ruta>	#desactivar quotas
+
+
+	
+*******************	
+Manejo de librerias
+*******************
+
+ldd <ruta_ejecutable>	#lista las dependencias
+ldconfig				#aplica la configuracion de /etc/ld.so.conf
+	-p					#Imprime la caché de librerias enlazadas
+
+
+
+*******************
+Gestion de paquetes
+*******************
+
+	||--- Make ---||
+make	#Determina que porciones de un programa necesitan ser recompiladas y las compila de la fuente.
+		#Se vale del archivo "makefile" para entender las relaciones entre los archivos del programa
+
+	#Cuando recompilas un kernel	
+	modules						#Compila los modulos del kernel dejando los binarios en el directorio de compilacion
+	modules_install				#Se asegura de que los binaris estén en el directorio de modulos del kernel. Compila los modulos si no se ha hecho antes
+		
+	||--- Debian ---||
+
+tasksel		#lanzar el interfaz grafico de instalacion del sistema operativo
+
+dpkg [opciones] <nombre_paquete> 	#Debian PacKaGe manager
+
+		#Información de paquetes
+	-l | --list						#Listar los paquetes instalados, informa de version, arquitectura y breve descripcion	
+	--get-selections				#Listar los paquetes instalados y su estado de instalación.
+	-p <ruta_paquete>				#Print Info - Supuestamente muestra informacion del paquete, no me funciona bien
+	--info <ruta_paquete>			#Info - Muestra una descripción del paquete y sus archivos
+	--contents <ruta_paquete>		#Contenido - Muestra el los archivos contenidos por el paquete
+	-s <paquete>					#Status - Muestra el estado del paquete e informacion relevante del mismo
+	-S <text>						#Busca los paquetes que contengan la cadena de búsqueda
+	-G | --refuse-downgrade			#No instala un paquete del que ya existe una version reciente
+	-C								#Check broken packages - Lista los paquetes parcialmente instalados y dice como instalarlos correctamente
+
+		#Gestión de Paquetes
+	-i <ruta_paquete>				#Install - instalar un paquete
+	-r <paquete>					#Remove  - Elimina un paquete dejando sus ficheros de configuracion
+	-P | --purge <paquete>			#Purge - Elimina un paquete y sus ficheros de configuracion	
+	--configure <package>	 		#Configura de nuevo paquete instalado
+	
+		#Gestion de arquitectura del sistema de paquetes
+	--print-architecture					#Muestra la arquitectura de los paquetes que dpkg instala (i386,amd64,...).
+	--print-foreign-architectures			#Lista de las arquitecturas adicionales para las que se ha configurado dpkg para permitir la instalación de paquetes.
+	--add-architecture <arquitectura> 		#Añade la arquitectura a la lista de arquitecturas donde los paquetes se pueden instalar sin utilizar --force-architecture.
+    --remove-architecture <arquitectura> 	#Elimina la arquitectura de la lista de  arquitecturas.
+	--force-architecture					#Opción para forzar las acciones no permitidas de los comandos de arquitectura?
+
+
+dpkg-reconfigure 	#reconfigurar un paquete
+
+apt-get <acciones> [opcion] <paquete>		#Gestor de paquetes a través de repositorio
+		update 								#Actualizar listado de repositorios
+		upgrade								#Actualizar lista de paquetes
+		dist-upgrade						#Actualizar lista de paquetes mejorando la resolución de conflictos entre paquetes
+		install	<paquete>					#Instalar paquete
+		remove  <paquete>					#Eliminar paquete
+		purge   <paquete>					#Eliminar paquete y configuraciones
+		download <paquete>					#Descargar paquete al disco
+		autoremove							#Eliminar dependencias que no están en uso
+		clean								#Limpia parte de la informacion almacenada que ya no es necesaria para ahorrar espacio
+
+apt-cache <accion> [opcion] <nombre_de paquete>		#Programa para realizar consultas a la cache de APT	
+		   search 			<nombre_de paquete>		#buscar paquete en la cache
+		   depends			<nombre_de paquete>		#lista dependencias
+
+apt-key <accion> <key_id>
+        list                            #Listar las claves gestionadas por apt
+        export <key_id>                 #Exportar claves
+        del <kei_id>                    #Eliminar la clave del repositorio
+        adv <options>                   #ADVanced - operaciones avanzadas sobre claves
+		    --recv-key <key_id>         #Agregar la clave con el <key_id> desde los repositorios de clabes
+        
+		   
+aptitude	#Funciona igual a apt-get, además tiene un entorno grafico para consola
+
+alien	#convierte paquetes rpm a paquetes deb
+
+
+	||--- Red Hat ---||
+setup		#como el tasksel de debian - configurar paquetes, red, firewall ....
+rpm [opciones] <paquete>					#Redhat Package Manager
+	#Consulta y Verificación
+	-q | --query [opciones] <paquete>		#Consultas sobre los paquetes instalados, sin opciones muestra si un paquete esta instalado    Ejemplo: rmp -q net-tools
+		-a									#Query All  - Muestra la lista de todos los paquetes instalados		Ejemplo: rpm -qa
+		-l	<paquete>						#Query List - Muestra la ruta de todos los archivos relacionados con un paquete		Ejemplo: rpm -ql net-tools
+		-c	<paquete>						#Query ConfigFiles	-	Muestra las rutas de los ficheros de configuracion									
+		-i	<paquete> 						#Query Info - Muestra toda la informacion de un paquete(nombre, version,...)		Ejemplo: rpm -qi net-tools
+		-f	<ruta_archivo>					#Query File - Muestra a que paquete pertenece el archivo
+		-p	<paquete-mas-reciente?>			#Query Package - Comprueba si el paquete es mas reciente del instalado?
+			--changelog						#Muestra  los cambios que se realizaron entre las versiones de los paquetes
+	-V | --verify [opciones]				#Consultas sobre los paquetes instalados
+		-a									#All - Verifica toda la lista de paquetes instalados
+		
+	#Instalacion, actualizacion y eliminacion
+	-i | --install [opciones] <paquete>		#Instalar
+	-U | --upgrade [opciones] <paquete>		#Instala o si ya existe lo actualiza
+	-F | --freshen [opciones] <paquete>		
+	-e | --erase [opciones] <paquete>		#Eliminar
+
+	#Opciones
+	-a										#All
+	-f										#File
+	-p										#Package
+	-v										#verbose
+	--test									#yu
+	--force	<paquete>						#Actualizar paquete SOLO si una version anterior está instalada en el sistema
+ 	--oldpackage <paquete>				    #Volver a la version anterior del paquete, en combinacion con -i | -U , no lo consigo hacer funcionar					
+	-h										#progreso de la instalacion
+	
+yum
+	install	<paquete>				#instalar
+	update	<paquete>				#Actualizar paquete, por defecto todos los paquetes
+	upgrade <paquete> 				#Como update, con los flags --obsolete activados 
+	check-update
+	search	<Stirng>				#Busca una cadena de caracteres que concuerde con la informacion
+	list <paquete>					#Buscar un paquete en la lista, por defecto lista todos los paquetes
+	info <paquete>					#Lista y muestra informacion adicional del paquete (Nombre,Versión,Tamaño,Repositorio,Descripción,...), por defecto lista todos
+	remove <paquete>				#eliminar paquete
+	erase <paquete>					#eliminar paquete
+	autoremove	<paquete>			#Elimina todos los paquetes instalados por el usuario que ya no sean requeridos por nadie
+	clean							#Vaciar la caché
+	downgrade <paquete>				#Baja el paquete a la version previa
+	groups							#Listar los metapaquetes del repositorio (entornos de escritorio tip GNOME o KDE ...)
+	groups list ids					#muestra metapaquetes con sus ids
+	groups list hidden				#muestra todos los metapaquetes
+	groups list hidden ids 			#muestra todos los metapaquetes con sus ids
+	repolist						#Muestra la lista de repositorios
+			-v						#Vervose, muestra informacion adicional de los repositorios
+	repoinfo						#Idéntico a repolist -v
+	
+	-y | --assumeyes				#Responde si a las preguntas
+	
+	yumdownloader	#descargar paquetes	
+		 
+********
+* Misc *
+********
+
+	wall #comunicar algo a todas las terminales ?
+	
+******	
+Fechas
+******
+	date
+		-d | --date <date>	#Muestra la hora descrita en el string <date>
+		-s | --set	<date>	#Fija la hora descrita en el string <date>
+		-u | --utc	[date]	#Muestra la hora UTC o la fija por la del string <date> en caso de proporcionarlo
+		+<formato>			#Caracteres de formato:
+		 %F					#Full date (%Y-%m-%d)
+		 %T					#Full time (%H:%M:%S)
+		 %Y					#Año (2017)
+		 %y					#Año (17)
+		 %m					#Mes en número (1-12)
+		 %b					#Mes texto abreviado (Ene)
+		 %B					#Mes en texto abreviado (Enero)
+		 %d					#Día en número (1-31)
+		 %a					#Día en texto abreviado (Lun)
+		 %A					#Día en texto completo (Lunes)
+		 %H					#Hora (00-23)		
+		 %I					#Hora (01-12)
+		 %M					#Minuto (00-59)
+		 %I					#Hora (01-12)
+		 %S					#Segundos (00-60)
+		 
+				
+	ntp			#servicio desincronizacion de hora, /etc/ntp.conf
+	ntpdate		#comando para sincronizar hora contra un servidor remoto
+		-n		#Sincronización de la hora con un servidor de hora remoto
+	ntpq		#??
+	hwclock	[<funct>] [<opt>]			#Ver / Modificar el reloj hardware
+		#FUNCIONES
+		--get						#Obtiene la hora del reloj hardware (por defecto)			
+		--set <opt>					#Configura el reloj hardware con el parámetro especificado
+		--systohc <opt>				#Configura el reloj hardware desde el reloj de sistema
+		--hctosys | -s	<opt>		#COnfigura el reloj del sistema desde el reloj de hardware
+	
+		#OPCIONES
+		--localtime
+		--date="datestring>
+		--utl | -u					#Indica la escala temporal del reloj
+	
+**************************
+Monitorizacion del sistema
+**************************
+
+	dmesg 	#informacion del proceso de carga del kernel y errores de runtime
+	top   	#Carga deservicios
+	w	    #Carga del sistema
+
+	
+***	
+Red
+***
+
+dhclient
+	-v	#??
+	
+*********************	
+Internazionalizacion:
+*********************
+	locale	#muestra las variables de entorno de los idiomas que se estan utilizando
+		-a
+
+	#/etc/locale.gen
+	iconv	#cambiar la codificacion de archivos 
+		-f
+		-t
+
+	tzdata
+
+	
+*****************	
+Loggs y Bitacoras
+*****************
+
+logger [opciones]		#Enviar un mensaje a logs a traves del sysloger
+	-p <prioridad>		#Error Warning || Mail Kernel --> mail.err
+	-t <mensaje>		#tell
+	-f	<path>			#file de log al que enviarlo, notese que por defecto se envia al log que tenga definido el tipo de error en us configuración
+
+logrotate 				#Divide archivos por tamaño y comprime
+
+journalctl										#Systema de loggin de SystemD
+	-f											#Follow  - Mostrar mensajes en tiempo real  - como tail -f like
+	-n <number>									#Number - Filtrar por numero de lineas como tail -n like
+	--list-boots								#Ver la lista del historico de los boots guardados <boot_id>
+	-b | --boot <boot_id|reg_count>				#Mostrar el log correspondiente al: <boot_id> = [0,1,..] 						
+												#				Cuenta Regresiva  : <reg_count> = [-1,-2,...]
+	_BOOT_ID=<boot_UUID>						#Mostrar el log correspondiente al boot_UUID											
+	-k											#Filtrar mensajes de kernel
+	_PID=<PID>									#Filtrar por PID
+	_COMM=<command>								#Filtrar por comando <command>
+	<command_path>								#Filtrar por comando <command_path>, se pone la ruta completa y no necesita parametros
+	-u <unit>									#Unit - Filtrar por unidades
+	_SYSTEM_UNIT=<unit>							#Unit - Filtrar por unidades
+	-p <error_level>							#Filtrar por error level <error_level> = 1,2,3,... | <error_level> = crit,err,warn 
+	--until "fecha"								#Filtrar por fecha "Hasta"
+	--since "fecha"								#Filtrar por fecha "Desde"
+	--vacuum-size=<size>						#Vaciar el log cuando alcanza el tamaño <size> = 2G,....
+	--vacuum-time=<time>						#Vaciar el log cuando alcanza el tiempo <time> = 2years,...
+	
+	#Concatenar filtros:
+		"+" = or								#Ejemplo: journalctl _SYSTEMD_UNIT=httpd.service + _SYSTEMD_UNIT=dbus.service		
+	
+	
+	
+*******	
+MAILING
+*******
+
+	mail	<user/address>	#mandar correos , se pueden enviar correos entre usuarios, de hecho por defecto solo viene configurado para usarlo entre usuarios
+		-v				#vervose
+		-s <subject>	#Asunto
+		-c	<user/address>	#Copia de carbon
+		-B	<user/address>	#bcc?
+
+	newaliases		#Aplicar modificaciones en el archivo /etc/aliases

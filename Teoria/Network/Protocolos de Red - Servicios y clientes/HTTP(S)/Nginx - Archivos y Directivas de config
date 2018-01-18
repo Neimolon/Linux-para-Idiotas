@@ -1,0 +1,114 @@
+*********************
+* Archivos de NginX * 
+*********************
+
+- Configuración:
+	/etc/nginx/nginx.conf				#Fichero principal de configuración
+	/etc/nginx/sites-available/*		#Ficheros de configuración para Virtual Hosts
+	/etc/nginx/sites-enabled/*			#Enlace a configuracion de VHosts que van a ser aplicados
+	
+- Document Root por Defecto (Debian)
+	/var/www/html/*
+	
+-Log Files
+	/var/log/nginx/error.log
+	/var/log/nginx/access.log
+
+
+
+	
+****************************************
+* Directivas de configuracion de NginX *
+****************************************
+
+	****************************************
+	Contenedores y Directivas segun contexto
+	****************************************
+	
+	
+->		context {				#Contexto global - digamos que es el root de los contextos
+			...
+->			events {			#Configurar opciones de manejadores a un nivel general
+				...
+				epoll			#Define como los procesos "workers" deben manejar las peticiones
+				...
+			}		
+			
+->			http {				#NginX como http server / reverse proxy - Aqui va la mayoría de directivas - Manejador para http(s)
+				...
+				access_log|error_log									#Directivas de configuracion de loggin
+				aio|sendfile|directio									#Configura operaciones asincronas de I/O sobre archivos
+				gzip|gzip_disable										#Configuracion de compresión
+				keepalive_disable|keepalive_requests|keepalive_timeout	#Ajuste fino de TCP keep alive
+				sendfile|tcp_nodelay|tcp_nopush							#Optimizacion de paquetes y llamadas al sistema
+				root|index|...											#Directivas adicionales a nivel de aplicacion
+				...
+->				server{ 		#Define un Virtual Server para específico para manejar las peticiones de los clientes
+					...
+					listen 			#ip/port - Determina que bloque de servidor manejará la peticion basandose en interfaz y puerto
+					server_name		#url	 - Determina que bloque de servidor manejará la peticion basandose en el campo Host de las cabeceras
+					Directivas de : logging, document root, compresion,redirecciones, reescrituras, variables arbitrarias ...
+					...
+					
+->					location [match_modifier] <location_match> { 		#Manejar directivas según ruta accedida
+						...
+						...
+					}
+				}	
+->				server{ ... }	#Se permiten multiples declaraciones de este contexto 
+			}
+		}
+	
+	
+	- Estos son los contenedores más habituales y el tipo de directivas que suelen englobar. Hay otras muchos contenedores, recomendable la lectura de este articulo para conocer esto en profundidad:
+		https://www.digitalocean.com/community/tutorials/understanding-the-nginx-configuration-file-structure-and-configuration-contexts
+
+		
+	*************************
+	Descripción de Directivas
+	*************************
+	
+		--- Todas las en http://nginx.org/en/docs/dirindex.html ---
+	
+			#Directivas de Configuracion de Hosts
+			
+->		listen addrs[:port]> [parameters]
+			Desc: Maneja las escuchas del servidor y permite asociarlas a un VHost
+			Contexto: server
+			Ejemplos:  listen *:8000;
+					   listen 192.168.2.130:80;
+					   
+->		server_name name|~regex [...]
+			Desc: Define el nombre de un VHost, si el nombre coincide con el Host de la cabecera de la petición HTTP se lanza el contexto sobre el que esta 
+			Contexto: server
+			Ejemplos: server_name mydomain.com								#Ejemplo simple
+					  server_name example.com *.example.com www.example.*;	#Multiples nombres y wildcards
+					  server_name .example.com;								#Otra forma de "wildcards"
+					  server_name ~^(www\.)?(.+)$;							#Regex 
+		
+->		root path
+			Desc: Define el directorio raiz para las peticiones
+			Contexto: http, server, location, if in location
+			Ejemplo: root /html/
+			
+
+		
+->		access_log
+		
+->		error_log
+		
+		
+			#Proxy Config
+		
+->		proxy_pass URL
+			Desc: Configura el protocolo y direccion de un servidor sobre el que hacer de proxy.
+			Context:	location, if in location, limit_except
+			Ejemplo: 	
+				proxy_pass http://localhost:8000/uri/;					#Las peticiones se envian a esta URL
+				proxy_pass http://unix:/tmp/backend.socket:/uri/;		#usando sockets de dominio de UNIX
+		
+->		proxy_set_header
+		
+->		fastcgi_pass
+		
+->		fastcgi_param

@@ -1,0 +1,56 @@
+*********
+* RegEx *
+*********
+
+**************
+Character Sets
+**************
+
+^ 				-> Inicio de linea
+$ 				-> Fin de linea
+[aeiou] 		-> match con cualquier caracter encerrado dentro de ellos
+[a-z][A-Z][1-5] -> Match con cualquier rango de la seleccion
+[^caracter] 	-> "^" dentro de un rango es negacion 
+. 				-> Equivale a cualquier caracter
+\ 				-> Escapar caracteres especiales
+
+****************
+Character Checks
+****************
+
+* -> n repeticiones del caracter que le precede
+? -> 0 o 1 repeticiones del caracter que le precede
++ -> 1 o + repeticiones del caracter que le precede
+{2,5} -> rango de repeticiones del selector que le precede
+| ->Varias opciones Ejemplo: lala|lele
+
+***************************
+Modificadores de caracteres
+***************************
+\l -> convertir a minusculas
+\L -> convertir a mayusculas
+ 
+******
+Grupos
+******
+/\(Seleccion\)/\$
+
+La seleccíon se realiza englobando con parentesis el texto a hacer match y se traslada al reemplazo a través de la llamada de las variables
+
+En caso de hacer grupos se puede hacer referencia a los parametros encontrados por la busqueda en la seccion de reemplazo con & cuando es un solo reemplazo.
+
+Cuando hay varios grupos con llamadas al parametro por su ordinalidad, \1 \2 \...
+
+********
+Ejemplos
+********
+
+ 1- sed 's/es$/spain' file
+ 2- sed 's/Inglaterra/UK/g' file
+ 3- sed 's/^\([0-9]\+\)\t\([0-9]\+\)/(\1\)t(\1)/g' agenda.txt
+ 4- sed 's/\([0-9]\+\)/(\1)/g' agenda.txt
+ 5- sed 's/^\([A-Z]\)/\l\1/g' agenda.txt
+ 
+ Quitar tags de un documento html:
+
+ sed 's/<[^>]*>//g' archivo.ext

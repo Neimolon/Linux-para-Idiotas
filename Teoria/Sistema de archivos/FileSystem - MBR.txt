@@ -1,0 +1,53 @@
+
+********************************
+* MBR Y TALBLAS DE PARTICIONES *
+********************************
+
+
+	La tabla de particiones está alojada en el Master Boot Record a partir del byte 446 y ocupa 64 bytes, conteniendo 4 registros de 16 bytes, los cuales definen las particiones primarias. En ellos se almacena toda la información básica sobre la partición: si es arrancable, si no lo es, el formato, el tamaño y el sector de inicio.
+
+	*******************************************
+	* Organización de la tabla de particiones *
+	*******************************************
+
+		512 bytes	Primer sector físico del disco duro (pista cero)
+			446 bytes	MBR - Código del gestor de arranque 
+			64 bytes	
+				16 bytes	Primera partición
+					1 byte	Marca de arranque si el bit 7 está activo es una partición de arranque, los otros bits deben ser ceros.
+					3 bytes	CHS de inicio
+					1 byte	Tipo de partición
+					3 bytes	CHS final
+					4 bytes	LBA
+					4 bytes	Tamaño en sectores
+				16 bytes	Segunda partición
+					1 byte	Marca de arranque si el bit 7 está activo es una partición de arranque, los otros bits deben ser ceros.
+					3 bytes	CHS de inicio
+					1 byte	Tipo de partición
+					3 bytes	CHS final
+					4 bytes	LBA
+					4 bytes	Tamaño en sectores
+				16 bytes	Tercera partición
+					1 byte	Marca de arranque si el bit 7 está activo es una partición de arranque, los otros bits deben ser ceros.
+					3 bytes	CHS de inicio
+					1 byte	Tipo de partición
+					3 bytes	CHS final
+					4 bytes	LBA
+					4 bytes	Tamaño en sectores
+				16 bytes	Cuarta partición
+					1 byte	Marca de arranque si el bit 7 está activo es una partición de arranque, los otros bits deben ser ceros.
+					3 bytes	CHS de inicio
+					1 byte	Tipo de partición
+					3 bytes	CHS final
+					4 bytes	LBA
+					4 bytes	Tamaño en sectores
+				2 bytes	Firma de unidad arrancable ("55 AA" en hexadecimal) 55AAH No es la manera correcta de escribir ese numero. 
+				
+				
+	******************************
+	* Codigos de las particiones *
+	******************************
+	
+	
+	
+		

@@ -1,0 +1,110 @@
+********************************************
+* Protocolos de Red - Servicios y Clientes *
+********************************************
+
+-Networking y Network Manager
+
+	Reiniciar el servicios de  red:
+		sertvice networking restart
+		systemctl restart networking.service
+		etc/init.d/networking restart
+		
+		sertvice network-manager restart
+		systemctl restart network-manager.service
+		etc/init.d/network-manager restart
+
+
+
+
+
+
+###TelNet: 
+	Conextion remóta con terminal.
+	
+	->Cliente:
+		-Nombre del Paquete: "telnet" 
+	
+		-Comandos:
+			telnet	<usuario>@<dominio>
+
+	->Servidor:
+		Nombre del Paquete: "telnetd"
+
+	->Files:
+		/etc/issue.net			#Mensaje en el login prompt de conexiones telnet
+
+
+	
+####ICMP: Internet Control Message Protocol
+	
+	Protocolo de control de comunicacioens entre redes
+	
+	-Puerto:
+	
+	-Clientes:
+			-Comandos:
+			ping <host>	#El de siempre
+			
+			traceroute <ip | dominio>	#muestra todos los saltos entre los quipos por los que pasa la peticion;
+				-n						#Mostrar IP por Hostname
+				
+			-Nombre del paquete: "iputils"
+				-Comandos
+					tracepath <ip |dominio>		#del paquete iputils, como traceroute con una salida un poco más limpia
+###IP
+	###IPv6###
+		--Sintaxis IPv6
+			-Representacion Normal:
+				Las direcciones IPv6 se conforman de 128 bits divididos en 8 bloques de 16 bits convertidos a un numero de 4 dígitos en hexadecimal. 				
+				Los bloques se separan por el divisor ":". De los cuales 64 corresponen a la red y otros 64 a hosts.
+			
+				Example: 2001:0DB8:0000:2F3B:02AA:00FF:FE28:9C5A
+
+			-Leading zero suppression:
+				Como las direcciones son muy largas, los "leading zeroes" de un bloque de 16bits se pueden eliminar y dejar un único cero
+					Example: :0000:  = :0:
+					Example: "2001:DB8:0:2F3B:2AA:FF:FE28:9C5A" = "2001:0DB8:0000:2F3B:02AA:00FF:FE28:9C5A"
+	
+			-Zero compression:
+				Una secuencia de bloques de 16 bits contigua puede ser reemplazada con el "double colon" (::)
+				Esta compresion solo puede ser aplicada una vez en la dirección.
+				Para saber cuantos bloques se han comprimido hay que contar los bloques existentes y restarselo al total de bloques (8)
+
+					Example: FE80:0000:0000:0000:2AA:FF:FE9A:4CA2 = FE80:0:0:0:2AA:FF:FE9A:4CA2 = FE80::2AA:FF:FE9A:4CA2
+		
+			-Prefijo en IPv6 (CIDR):
+				IPv6 admite prefijos de mascara de red del mismo modo que IPv4 y funciona de la misma manera.
+					Example: 21DA:D3:0:2F3B::/64
+				
+				
+		--Características IPv6
+			IPv6 No soporta direcciones de broadcast
+		
+###PPP: Point to Point Protocol
+
+	Protocolo para gestionar conexiones punto a punto entre equipos.
+	
+	Cliente?,Servidor?:
+		pppd
+
+		
+	Cuando se usa PAP con PPP:
+		/etc/ppp/pap-secrets		#Debe ser solo legible por root
+
+		
+	Comandos:
+		crtscts		#Establecer el uso del control de flujo por HW
+		
+	Protocolos de autenticacion:
+		CHAP es el más seguro
+		
+
+
+###SMB
+	
+	Samba	
+	
+	smbstatus		#Monitorizar conexiones al servidor de samba
+	smbadduser		#Mapear id de usuario de windows a id de usuario de linux
+	
+

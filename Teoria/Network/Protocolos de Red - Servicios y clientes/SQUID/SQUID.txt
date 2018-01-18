@@ -1,0 +1,36 @@
+*********
+* SQUID *
+*********
+
+	Squid es un:
+		- Servidor Intermediario (Proxy) de caché de contenido de Red para los protocolos HTTP, FTP, GOPHER y WAIS
+		- Proxy de SSL, caché transparente, WWCP, aceleración HTTP, caché de consultas DNS 
+		- Filtro de contenido y control de acceso por IP, usuario y por rango horario.
+		- Herramienta de monitorización de actividad de los usuarios.
+
+
+	Proxy explicito: En un proxy explicito el navegador del cliente debe estar configurado para enviar el trafico a través del proxy
+
+	Proxy transparente: La ventaja del proxy transparente es que no hay que configurar nada en los clientes. El trafico de la red saliente por los puertos de acceso a internet(80,443 habitualmente) se redirige a través del proxy gracias a iptables en el servidor proxy, un switch capa 4, o un Router con WCCP que redireccionen el tráfico hacia el proxy... 
+						Los proxys transparentes tienen problemas a la hora de autenticacion con servicios
+						
+		Ejemplos reglas IPTables para aplicar en proxy transparente:
+			echo 1 > /proc/sys/net/ipv4/ip_forward
+			iptables -t nat -A PREROUTING -p tcp -s 172.27.1.0/24 --dport 80 -j REDIRECT --to-port 3128
+			iptables -t nat -A PREROUTING -p tcp -s 172.27.1.0/24 --dport 443 -j REDIRECT --to-port 3128
+			iptables -t nat -A POSTROUTING -s 172.27.1.0/24 -d 0.0.0.0/24 -o eth0 -j MASQUERADE
+		
+	
+
+DansGuardian #Buscar en google
+E2Guardian
+
+
+**********
+Insalación
+**********
+
+	Debian:
+		apt-get install squid3
+
+
