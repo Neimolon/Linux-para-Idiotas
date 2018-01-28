@@ -1,0 +1,28 @@
+Paquetes:
+    bluetooth
+    bluez
+
+
+Daemon:
+    bluethoothd     #Demonio que manej la conexion a dispositivos Bluethoot
+        -d | --debug[=<file>:<file>]    #STDOUT por defecto, sino a arhcivos. Informacion extra de lo que está haciendo el demonio
+        -n | --nodetach                 #Enable logging in foreground. Directs log output to the controlling terminal in addition to syslog.
+
+    #El demonio de bluethoot levanta los dispositivos con el nombre hci<0,1,2,...>. 
+    #En dev no existe ese dispositivo como tal. No se muy bien como funciona esto, 
+    #Pero parece que hay un driver maestro y de lo demás se encarga el daemon
+
+
+
+    bluetoothctl    #no lo he probado
+
+    hcitool
+        dev            #Display local devices
+        scan           #Scan for remote devices
+        name           #Get name from remote device
+        info <addr>    #Get information from remote device
+        cmd <?>        #Submit arbitrary HCI commands
+        con <?>        #Display active connections
+        auth <?>       #Request authentication
+        enc <?>        #Set connection encryption
+        key <?>        #Change connection link key
